@@ -8,16 +8,16 @@ import java.util.Objects;
 
 @Entity
 @Table(name = "goods", schema = "auction", catalog = "auction")
-public class GoodsEntity {
+public class GoodEntity {
     private Long id;
     private String name;
     private String description;
     private LocalDateTime createTime;
-    private AuctionsEntity auctionEntity;
+    private AuctionEntity auctionEntity;
     private GoodsCategoriesEntity goodsCategorieEntity;
-    private UsersEntity usersBySellerId;
+    private UserEntity usersBySellerId;
     private List<String> images;
-    private List<WishlistsEntity> wishlistsEntities;
+    private List<WishlistEntity> wishlistsEntities;
 
     @Id
     @Column(name = "id")
@@ -63,7 +63,7 @@ public class GoodsEntity {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        GoodsEntity that = (GoodsEntity) o;
+        GoodEntity that = (GoodEntity) o;
         return id == that.id && Objects.equals(name, that.name) && Objects.equals(description, that.description) && Objects.equals(createTime, that.createTime);
     }
 
@@ -73,11 +73,11 @@ public class GoodsEntity {
     }
 
     @OneToOne(mappedBy = "goodEntity")
-    public AuctionsEntity getAuctionEntity() {
+    public AuctionEntity getAuctionEntity() {
         return auctionEntity;
     }
 
-    public void setAuctionEntity(AuctionsEntity auctionsById) {
+    public void setAuctionEntity(AuctionEntity auctionsById) {
         this.auctionEntity = auctionsById;
     }
 
@@ -93,11 +93,11 @@ public class GoodsEntity {
 
     @ManyToOne
     @JoinColumn(name = "seller_id", referencedColumnName = "id")
-    public UsersEntity getUsersBySellerId() {
+    public UserEntity getUsersBySellerId() {
         return usersBySellerId;
     }
 
-    public void setUsersBySellerId(UsersEntity usersBySellerId) {
+    public void setUsersBySellerId(UserEntity usersBySellerId) {
         this.usersBySellerId = usersBySellerId;
     }
 
@@ -113,11 +113,11 @@ public class GoodsEntity {
     }
 
     @OneToMany(mappedBy = "goodEntity")
-    public List<WishlistsEntity> getWishlistsEntities() {
+    public List<WishlistEntity> getWishlistsEntities() {
         return wishlistsEntities;
     }
 
-    public void setWishlistsEntities(List<WishlistsEntity> wishlistsById) {
+    public void setWishlistsEntities(List<WishlistEntity> wishlistsById) {
         this.wishlistsEntities = wishlistsById;
     }
 }

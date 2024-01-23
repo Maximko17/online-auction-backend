@@ -1,12 +1,13 @@
 create table if not exists users
 (
     id       bigint primary key GENERATED ALWAYS AS IDENTITY,
-    name     text not null unique,
-    email    text not null,
+    username text not null unique,
+    image    text,
+    email    text,
     password text not null
 );
 
-create table if not exists users_roles
+create table if not exists roles
 (
     user_id bigint not null,
     role    text   not null,

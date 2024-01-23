@@ -10,7 +10,7 @@ import java.util.Objects;
 public class GoodsCategoriesEntity {
     private Long id;
     private String name;
-    private List<GoodsEntity> goodsEntities;
+    private List<GoodEntity> goodsEntities;
 
     @Id
     @Column(name = "id")
@@ -46,11 +46,11 @@ public class GoodsCategoriesEntity {
     }
 
     @OneToMany(mappedBy = "goodsCategorieEntity")
-    public List<GoodsEntity> getGoodsEntities() {
+    public List<GoodEntity> getGoodsEntities() {
         return goodsEntities;
     }
 
-    public void setGoodsEntities(List<GoodsEntity> goodsEntities) {
+    public void setGoodsEntities(List<GoodEntity> goodsEntities) {
         this.goodsEntities = goodsEntities;
     }
 }

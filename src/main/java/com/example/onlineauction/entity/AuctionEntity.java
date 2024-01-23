@@ -9,7 +9,7 @@ import java.util.Objects;
 
 @Entity
 @Table(name = "auctions", schema = "auction", catalog = "auction")
-public class AuctionsEntity {
+public class AuctionEntity {
     private Long id;
     private LocalDateTime startTime;
     private LocalDateTime endTime;
@@ -19,9 +19,9 @@ public class AuctionsEntity {
     private BigDecimal finalBid;
     private Object status;
     private Integer bidCount;
-    private GoodsEntity goodEntity;
-    private UsersEntity userEntity;
-    private List<BidsEntity> bidsEntities;
+    private GoodEntity goodEntity;
+    private UserEntity userEntity;
+    private List<BidEntity> bidsEntities;
 
     @Id
     @Column(name = "id")
@@ -117,7 +117,7 @@ public class AuctionsEntity {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        AuctionsEntity that = (AuctionsEntity) o;
+        AuctionEntity that = (AuctionEntity) o;
         return id == that.id && Objects.equals(startTime, that.startTime) && Objects.equals(endTime, that.endTime) && Objects.equals(startBid, that.startBid) && Objects.equals(currentBid, that.currentBid) && Objects.equals(bidIncrement, that.bidIncrement) && Objects.equals(finalBid, that.finalBid) && Objects.equals(status, that.status) && Objects.equals(bidCount, that.bidCount);
     }
 
@@ -128,30 +128,30 @@ public class AuctionsEntity {
 
     @OneToOne
     @JoinColumn(name = "id", referencedColumnName = "id", nullable = false)
-    public GoodsEntity getGoodEntity() {
+    public GoodEntity getGoodEntity() {
         return goodEntity;
     }
 
-    public void setGoodEntity(GoodsEntity goodsById) {
+    public void setGoodEntity(GoodEntity goodsById) {
         this.goodEntity = goodsById;
     }
 
     @ManyToOne
     @JoinColumn(name = "winner_id", referencedColumnName = "id")
-    public UsersEntity getUserEntity() {
+    public UserEntity getUserEntity() {
         return userEntity;
     }
 
-    public void setUserEntity(UsersEntity usersByWinnerId) {
+    public void setUserEntity(UserEntity usersByWinnerId) {
         this.userEntity = usersByWinnerId;
     }
 
     @OneToMany(mappedBy = "auctionEntity")
-    public List<BidsEntity> getBidsEntities() {
+    public List<BidEntity> getBidsEntities() {
         return bidsEntities;
     }
 
-    public void setBidsEntities(List<BidsEntity> bidsEntities) {
+    public void setBidsEntities(List<BidEntity> bidsEntities) {
         this.bidsEntities = bidsEntities;
     }
 }

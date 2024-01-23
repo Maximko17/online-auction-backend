@@ -4,21 +4,24 @@ import jakarta.persistence.*;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 @Entity
 @Table(name = "users", schema = "auction", catalog = "auction")
-public class UsersEntity {
+public class UserEntity {
     private Long id;
     private String name;
     private String email;
     private String password;
-    private List<AuctionsEntity> auctionEntities;
-    private List<BidsEntity> bidEntities;
-    private List<GoodsEntity> goodEntities;
-    private List<UsersRolesEntity> usersRolesEntities;
-    private List<WishlistsEntity> wishlistsEntities;
+    private List<AuctionEntity> auctionEntities;
+    private List<BidEntity> bidEntities;
+    private List<GoodEntity> goodEntities;
+    private Set<Role> roles;
+    private List<WishlistEntity> wishlistsEntities;
+    private String passwordConfirmation;
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     public Long getId() {
         return id;
@@ -58,11 +61,16 @@ public class UsersEntity {
         this.password = password;
     }
 
+    @Transient
+    public String getPasswordConfirmation() {
+        return passwordConfirmation;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        UsersEntity that = (UsersEntity) o;
+        UserEntity that = (UserEntity) o;
         return id == that.id && Objects.equals(name, that.name) && Objects.equals(email, that.email) && Objects.equals(password, that.password);
     }
 
@@ -72,47 +80,51 @@ public class UsersEntity {
     }
 
     @OneToMany(mappedBy = "userEntity")
-    public List<AuctionsEntity> getAuctionEntities() {
+    public List<AuctionEntity> getAuctionEntities() {
         return auctionEntities;
     }
 
-    public void setAuctionEntities(List<AuctionsEntity> auctionsById) {
+    public void setAuctionEntities(List<AuctionEntity> auctionsById) {
         this.auctionEntities = auctionsById;
     }
 
     @OneToMany(mappedBy = "userEntity")
-    public List<BidsEntity> getBidEntities() {
+    public List<BidEntity> getBidEntities() {
         return bidEntities;
     }
 
-    public void setBidEntities(List<BidsEntity> bidsById) {
+    public void setBidEntities(List<BidEntity> bidsById) {
         this.bidEntities = bidsById;
     }
 
     @OneToMany(mappedBy = "usersBySellerId")
-    public List<GoodsEntity> getGoodEntities() {
+    public List<GoodEntity> getGoodEntities() {
         return goodEntities;
     }
 
-    public void setGoodEntities(List<GoodsEntity> goodsById) {
+    public void setGoodEntities(List<GoodEntity> goodsById) {
         this.goodEntities = goodsById;
     }
 
-    @OneToMany(mappedBy = "userEntity")
-    public List<UsersRolesEntity> getUsersRolesEntities() {
-        return usersRolesEntities;
+    @Column(name = "role")
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "roles", joinColumns = @JoinColumn(name = "user_id"))
+    @Enumerated(value = EnumType.STRING)
+    public Set<Role> getRoles() {
+        return roles;
     }
 
-    public void setUsersRolesEntities(List<UsersRolesEntity> usersRolesById) {
-        this.usersRolesEntities = usersRolesById;
+    public void setRoles(Set<Role> usersRoles) {
+        this.roles = usersRoles;
     }
 
     @OneToMany(mappedBy = "userEntity")
-    public List<WishlistsEntity> getWishlistsEntities() {
+    public List<WishlistEntity> getWishlistsEntities() {
         return wishlistsEntities;
     }
 
-    public void setWishlistsEntities(List<WishlistsEntity> wishlistsById) {
+    public void setWishlistsEntities(List<WishlistEntity> wishlistsById) {
         this.wishlistsEntities = wishlistsById;
     }
+
 }

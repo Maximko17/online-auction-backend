@@ -6,9 +6,9 @@ import jakarta.persistence.Id;
 import java.io.Serializable;
 import java.util.Objects;
 
-public class UsersRolesEntityPK implements Serializable {
-    private Long userId;
-    private String role;
+public class WishlistEntityPK implements Serializable {
+    private long userId;
+    private long goodId;
 
     @Column(name = "user_id")
     @Id
@@ -20,26 +20,26 @@ public class UsersRolesEntityPK implements Serializable {
         this.userId = userId;
     }
 
-    @Column(name = "role")
+    @Column(name = "good_id")
     @Id
-    public String getRole() {
-        return role;
+    public long getGoodId() {
+        return goodId;
     }
 
-    public void setRole(String role) {
-        this.role = role;
+    public void setGoodId(long goodId) {
+        this.goodId = goodId;
     }
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        UsersRolesEntityPK that = (UsersRolesEntityPK) o;
-        return userId == that.userId && Objects.equals(role, that.role);
+        WishlistEntityPK that = (WishlistEntityPK) o;
+        return userId == that.userId && goodId == that.goodId;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(userId, role);
+        return Objects.hash(userId, goodId);
     }
 }

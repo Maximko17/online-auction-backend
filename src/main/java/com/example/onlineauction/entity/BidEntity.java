@@ -8,12 +8,12 @@ import java.util.Objects;
 
 @Entity
 @Table(name = "bids", schema = "auction", catalog = "auction")
-public class BidsEntity {
+public class BidEntity {
     private Long id;
     private BigDecimal bid;
     private LocalDateTime bidTime;
-    private AuctionsEntity auctionEntity;
-    private UsersEntity userEntity;
+    private AuctionEntity auctionEntity;
+    private UserEntity userEntity;
 
     @Id
     @Column(name = "id")
@@ -49,7 +49,7 @@ public class BidsEntity {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        BidsEntity that = (BidsEntity) o;
+        BidEntity that = (BidEntity) o;
         return id == that.id && Objects.equals(bid, that.bid) && Objects.equals(bidTime, that.bidTime);
     }
 
@@ -60,21 +60,21 @@ public class BidsEntity {
 
     @ManyToOne
     @JoinColumn(name = "auction_id", referencedColumnName = "id", nullable = false)
-    public AuctionsEntity getAuctionEntity() {
+    public AuctionEntity getAuctionEntity() {
         return auctionEntity;
     }
 
-    public void setAuctionEntity(AuctionsEntity auctionsByAuctionId) {
+    public void setAuctionEntity(AuctionEntity auctionsByAuctionId) {
         this.auctionEntity = auctionsByAuctionId;
     }
 
     @ManyToOne
     @JoinColumn(name = "user_id", referencedColumnName = "id", nullable = false)
-    public UsersEntity getUserEntity() {
+    public UserEntity getUserEntity() {
         return userEntity;
     }
 
-    public void setUserEntity(UsersEntity usersByUserId) {
+    public void setUserEntity(UserEntity usersByUserId) {
         this.userEntity = usersByUserId;
     }
 }

@@ -6,12 +6,12 @@ import java.util.Objects;
 
 @Entity
 @Table(name = "wishlists", schema = "auction", catalog = "auction")
-@IdClass(WishlistsEntityPK.class)
-public class WishlistsEntity {
+@IdClass(WishlistEntityPK.class)
+public class WishlistEntity {
     private Long userId;
     private Long goodId;
-    private UsersEntity userEntity;
-    private GoodsEntity goodEntity;
+    private UserEntity userEntity;
+    private GoodEntity goodEntity;
 
     @Id
     @Column(name = "user_id")
@@ -37,7 +37,7 @@ public class WishlistsEntity {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        WishlistsEntity that = (WishlistsEntity) o;
+        WishlistEntity that = (WishlistEntity) o;
         return userId == that.userId && goodId == that.goodId;
     }
 
@@ -48,21 +48,21 @@ public class WishlistsEntity {
 
     @ManyToOne
     @JoinColumn(name = "user_id", referencedColumnName = "id", nullable = false)
-    public UsersEntity getUserEntity() {
+    public UserEntity getUserEntity() {
         return userEntity;
     }
 
-    public void setUserEntity(UsersEntity usersByUserId) {
+    public void setUserEntity(UserEntity usersByUserId) {
         this.userEntity = usersByUserId;
     }
 
     @ManyToOne
     @JoinColumn(name = "good_id", referencedColumnName = "id", nullable = false)
-    public GoodsEntity getGoodEntity() {
+    public GoodEntity getGoodEntity() {
         return goodEntity;
     }
 
-    public void setGoodEntity(GoodsEntity goodsByGoodId) {
+    public void setGoodEntity(GoodEntity goodsByGoodId) {
         this.goodEntity = goodsByGoodId;
     }
 }
