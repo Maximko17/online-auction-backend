@@ -12,16 +12,17 @@ public class BidEntity {
     private Long id;
     private BigDecimal bid;
     private LocalDateTime bidTime;
-    private AuctionEntity auctionEntity;
+    private LotEntity lotEntity;
     private UserEntity userEntity;
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
-    public long getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(long id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
@@ -59,13 +60,13 @@ public class BidEntity {
     }
 
     @ManyToOne
-    @JoinColumn(name = "auction_id", referencedColumnName = "id", nullable = false)
-    public AuctionEntity getAuctionEntity() {
-        return auctionEntity;
+    @JoinColumn(name = "lot_id", referencedColumnName = "id", nullable = false)
+    public LotEntity getLotEntity() {
+        return lotEntity;
     }
 
-    public void setAuctionEntity(AuctionEntity auctionsByAuctionId) {
-        this.auctionEntity = auctionsByAuctionId;
+    public void setLotEntity(LotEntity lotsByLotId) {
+        this.lotEntity = lotsByLotId;
     }
 
     @ManyToOne

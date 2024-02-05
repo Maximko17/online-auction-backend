@@ -5,13 +5,13 @@ import jakarta.persistence.*;
 import java.util.Objects;
 
 @Entity
-@Table(name = "wishlists", schema = "auction", catalog = "auction")
-@IdClass(WishlistEntityPK.class)
-public class WishlistEntity {
+@Table(name = "tracking", schema = "auction", catalog = "auction")
+@IdClass(TrackingEntityPK.class)
+public class TrackingEntity {
     private Long userId;
-    private Long goodId;
+    private Long lotId;
     private UserEntity userEntity;
-    private GoodEntity goodEntity;
+    private LotEntity lotEntity;
 
     @Id
     @Column(name = "user_id")
@@ -24,26 +24,26 @@ public class WishlistEntity {
     }
 
     @Id
-    @Column(name = "good_id")
-    public Long getGoodId() {
-        return goodId;
+    @Column(name = "lot_id")
+    public Long getLotId() {
+        return lotId;
     }
 
-    public void setGoodId(Long goodId) {
-        this.goodId = goodId;
+    public void setLotId(Long lotId) {
+        this.lotId = lotId;
     }
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        WishlistEntity that = (WishlistEntity) o;
-        return userId == that.userId && goodId == that.goodId;
+        TrackingEntity that = (TrackingEntity) o;
+        return userId == that.userId && lotId == that.lotId;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(userId, goodId);
+        return Objects.hash(userId, lotId);
     }
 
     @ManyToOne
@@ -57,12 +57,12 @@ public class WishlistEntity {
     }
 
     @ManyToOne
-    @JoinColumn(name = "good_id", referencedColumnName = "id", nullable = false)
-    public GoodEntity getGoodEntity() {
-        return goodEntity;
+    @JoinColumn(name = "lot_id", referencedColumnName = "id", nullable = false)
+    public LotEntity getLotEntity() {
+        return lotEntity;
     }
 
-    public void setGoodEntity(GoodEntity goodsByGoodId) {
-        this.goodEntity = goodsByGoodId;
+    public void setLotEntity(LotEntity lotsByLotId) {
+        this.lotEntity = lotsByLotId;
     }
 }
