@@ -17,6 +17,7 @@ public class LotGroupEntity {
     private UserEntity usersByCreatorId;
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     public Long getId() {
         return id;
@@ -61,7 +62,7 @@ public class LotGroupEntity {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         LotGroupEntity that = (LotGroupEntity) o;
-        return id == that.id && Objects.equals(name, that.name) && Objects.equals(description, that.description) && Objects.equals(createdTime, that.createdTime);
+        return id.equals(that.id) && Objects.equals(name, that.name) && Objects.equals(description, that.description) && Objects.equals(createdTime, that.createdTime);
     }
 
     @Override
@@ -69,7 +70,7 @@ public class LotGroupEntity {
         return Objects.hash(id, name, description, createdTime);
     }
 
-    @OneToMany(mappedBy = "lotsGroupsByGroupId")
+    @OneToMany(mappedBy = "lotsGroupEntity")
     public List<LotEntity> getLotsById() {
         return lotsById;
     }

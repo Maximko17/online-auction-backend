@@ -24,14 +24,15 @@ public class JwtTokenFilter extends GenericFilterBean {
         if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
             bearerToken = bearerToken.substring(7);
         }
-        if (bearerToken != null && jwtTokenProvider.validateToken(bearerToken)) {
-            try {
+        try {
+            if (bearerToken != null && jwtTokenProvider.validateToken(bearerToken)) {
                 Authentication authentication = jwtTokenProvider.getAuthentication(bearerToken);
                 if (authentication != null) {
                     SecurityContextHolder.getContext().setAuthentication(authentication);
                 }
-            } catch (ResourceNotFoundException ignored) {
             }
+        } catch (Exception ex) {
+            throw new RuntimeException(ex.getMessage(), ex);
         }
         filterChain.doFilter(servletRequest, servletResponse);
     }

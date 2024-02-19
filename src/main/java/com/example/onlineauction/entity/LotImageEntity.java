@@ -1,5 +1,6 @@
 package com.example.onlineauction.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 import java.util.Objects;
@@ -9,7 +10,8 @@ import java.util.Objects;
 public class LotImageEntity {
     private Long id;
     private String image;
-    private LotEntity lotsByLotId;
+    @JsonIgnore
+    private LotEntity lotEntity;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -37,7 +39,7 @@ public class LotImageEntity {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         LotImageEntity that = (LotImageEntity) o;
-        return id == that.id && Objects.equals(image, that.image);
+        return id.equals(that.id) && Objects.equals(image, that.image);
     }
 
     @Override
@@ -47,11 +49,11 @@ public class LotImageEntity {
 
     @ManyToOne
     @JoinColumn(name = "lot_id", referencedColumnName = "id", nullable = false)
-    public LotEntity getLotsByLotId() {
-        return lotsByLotId;
+    public LotEntity getLotEntity() {
+        return lotEntity;
     }
 
-    public void setLotsByLotId(LotEntity lotsByLotId) {
-        this.lotsByLotId = lotsByLotId;
+    public void setLotEntity(LotEntity lotsByLotId) {
+        this.lotEntity = lotsByLotId;
     }
 }

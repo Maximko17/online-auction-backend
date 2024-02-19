@@ -1,13 +1,11 @@
 package com.example.onlineauction.dto.auth;
 
 import lombok.Data;
+import lombok.experimental.Accessors;
 
 @Data
-public class AuthLoginResponse {
-
-    private Long id;
-    private String username;
+@Accessors(chain = true)
+public class JwtResponseDto {
     private String accessToken;
     private String refreshToken;
-
 }

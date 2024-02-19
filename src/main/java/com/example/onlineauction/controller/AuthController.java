@@ -1,15 +1,9 @@
 package com.example.onlineauction.controller;
 
-import com.example.onlineauction.dto.auth.AuthLoginRequest;
-import com.example.onlineauction.dto.auth.AuthLoginResponse;
-import com.example.onlineauction.dto.auth.AuthRegisterRequest;
-import com.example.onlineauction.dto.auth.AuthRegisterResponse;
-import com.example.onlineauction.dto.validation.OnCreate;
-import com.example.onlineauction.entity.UserEntity;
+import com.example.onlineauction.dto.auth.*;
 import com.example.onlineauction.service.AuthService;
-import com.example.onlineauction.service.UserService;
 import lombok.RequiredArgsConstructor;
-import org.modelmapper.ModelMapper;
+import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -23,23 +17,25 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
 
     private final AuthService authService;
-    private final UserService userService;
-    private final ModelMapper modelMapper;
 
     @PostMapping("/login")
-    public AuthLoginResponse login(@Validated @RequestBody AuthLoginRequest loginRequest) {
-        return authService.login(loginRequest);
+    public JwtResponseDto login(@Validated @RequestBody LoginRequestDto loginRequestDto) {
+        return authService.login(loginRequestDto);
     }
 
     @PostMapping("/register")
-    public AuthRegisterResponse register(@Validated(OnCreate.class) @RequestBody AuthRegisterRequest userDto) {
-        UserEntity user = modelMapper.map(userDto, UserEntity.class);
-        UserEntity createdUser = userService.create(user);
-        return modelMapper.map(createdUser, AuthRegisterResponse.class);
+    public JwtResponseDto register(@Validated @RequestBody RegisterRequestDto registerRequestDto) {
+        return authService.register(registerRequestDto);
+    }
+
+    @PostMapping("/verification")
+    public ResponseEntity<Void> verifyEmail(@Validated @RequestBody VerifyEmailRequestDto verifyEmailRequestDto) {
+        authService.sendVerificationEmail(verifyEmailRequestDto.getEmail());
+        return ResponseEntity.ok().build();
     }
 
     @PostMapping("/refresh")
-    public AuthLoginResponse refresh(@RequestBody String refreshToken) {
-        return authService.refresh(refreshToken);
+    public JwtResponseDto refresh(@RequestBody JwtRefreshRequestDto jwtResponseDto) {
+        return authService.refresh(jwtResponseDto.getRefreshToken());
     }
 }

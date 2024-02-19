@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Thank you for registration ${name}</title>
+    <title>Thank you for registration</title>
     <style>
         #body {
             display: flex;
@@ -30,9 +30,10 @@
 <div id="body">
     <div id="div">
         <h1 style="text-align: center">Registration</h1>
-        <p>Hello, ${name}!</p>
-        <p>This is registration mail. You can log in and use task list app.</p>
-        <p>With best regards, <br> Max  </p>
+        <span>
+            <a href="http://localhost:3000/sign-up?token=${token}">Click here</a>
+             to verify email
+        </span>
     </div>
 </div>
 </body>

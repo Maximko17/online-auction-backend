@@ -1,9 +1,11 @@
 package com.example.onlineauction.entity;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.ColumnTransformer;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Objects;
 
 @Entity
@@ -17,10 +19,12 @@ public class LotEntity {
     private LocalDateTime startTime;
     private LocalDateTime endTime;
     private Status status;
-    private LotGroupEntity lotsGroupsByGroupId;
-    private UserEntity usersBySellerId;
+    private LotGroupEntity lotsGroupEntity;
+    private List<LotImageEntity> images;
+    private UserEntity seller;
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     public Long getId() {
         return id;
@@ -92,6 +96,8 @@ public class LotEntity {
 
     @Basic
     @Column(name = "status")
+    @Enumerated(EnumType.STRING)
+    @ColumnTransformer(write = "?::status")
     public Status getStatus() {
         return status;
     }
@@ -105,7 +111,7 @@ public class LotEntity {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         LotEntity that = (LotEntity) o;
-        return id == that.id && Objects.equals(name, that.name) && Objects.equals(description, that.description) && Objects.equals(bidIncrement, that.bidIncrement) && Objects.equals(startBid, that.startBid) && Objects.equals(startTime, that.startTime) && Objects.equals(endTime, that.endTime) && Objects.equals(status, that.status);
+        return id.equals(that.id) && Objects.equals(name, that.name) && Objects.equals(description, that.description) && Objects.equals(bidIncrement, that.bidIncrement) && Objects.equals(startBid, that.startBid) && Objects.equals(startTime, that.startTime) && Objects.equals(endTime, that.endTime) && Objects.equals(status, that.status);
     }
 
     @Override
@@ -115,21 +121,30 @@ public class LotEntity {
 
     @ManyToOne
     @JoinColumn(name = "group_id", referencedColumnName = "id")
-    public LotGroupEntity getLotsGroupsByGroupId() {
-        return lotsGroupsByGroupId;
+    public LotGroupEntity getLotsGroupEntity() {
+        return lotsGroupEntity;
     }
 
-    public void setLotsGroupsByGroupId(LotGroupEntity lotsGroupsByGroupId) {
-        this.lotsGroupsByGroupId = lotsGroupsByGroupId;
+    public void setLotsGroupEntity(LotGroupEntity lotsGroupsByGroupId) {
+        this.lotsGroupEntity = lotsGroupsByGroupId;
     }
 
     @ManyToOne
     @JoinColumn(name = "seller_id", referencedColumnName = "id", nullable = false)
-    public UserEntity getUsersBySellerId() {
-        return usersBySellerId;
+    public UserEntity getSeller() {
+        return seller;
     }
 
-    public void setUsersBySellerId(UserEntity usersBySellerId) {
-        this.usersBySellerId = usersBySellerId;
+    public void setSeller(UserEntity sellerEntity) {
+        this.seller = sellerEntity;
+    }
+
+    @OneToMany(mappedBy = "lotEntity")
+    public List<LotImageEntity> getImages() {
+        return images;
+    }
+
+    public void setImages(List<LotImageEntity> lotImages) {
+        this.images = lotImages;
     }
 }

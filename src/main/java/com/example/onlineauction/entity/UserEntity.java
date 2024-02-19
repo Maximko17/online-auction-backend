@@ -1,8 +1,10 @@
 package com.example.onlineauction.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import org.hibernate.annotations.ColumnTransformer;
 
+import java.util.List;
 import java.util.Objects;
 
 @Entity
@@ -38,6 +40,7 @@ public class UserEntity {
     }
 
     @Basic
+    @JsonIgnore
     @Column(name = "password")
     public String getPassword() {
         return password;
@@ -93,7 +96,7 @@ public class UserEntity {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         UserEntity that = (UserEntity) o;
-        return id == that.id && Objects.equals(username, that.username) && Objects.equals(password, that.password) && Objects.equals(email, that.email) && Objects.equals(role, that.role) && Objects.equals(rating, that.rating) && Objects.equals(image, that.image);
+        return id.equals(that.id) && Objects.equals(username, that.username) && Objects.equals(password, that.password) && Objects.equals(email, that.email) && Objects.equals(role, that.role) && Objects.equals(rating, that.rating) && Objects.equals(image, that.image);
     }
 
     @Override
