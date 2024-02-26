@@ -1,27 +1,36 @@
 package com.example.onlineauction.controller;
 
-import com.example.onlineauction.dto.user.UserDto;
+import com.example.onlineauction.entity.LotEntity;
 import com.example.onlineauction.entity.UserEntity;
+import com.example.onlineauction.security.JwtUserDetails;
+import com.example.onlineauction.service.BidService;
+import com.example.onlineauction.service.TrackingService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/users")
 @RequiredArgsConstructor
 public class UserController {
 
-//    @PutMapping
-//    public UserDto update(@RequestPart("lot") UserDto dto,
-//                          @RequestPart(value = "image", required = false) MultipartFile image) {
-//        UserEntity user = userMapper.toEntity(dto);
-//        UserEntity updatedUser = userService.update(user);
-//        return userMapper.toDto(updatedUser);
-//    }
+    private final TrackingService trackingService;
+    private final BidService bidService;
 
-//    @GetMapping("/{id}")
-//    public UserDto getById(@PathVariable @Argument final Long id) {
-//        User user = userService.getById(id);
-//        return userMapper.toDto(user);
+    @GetMapping("/me/lots/tracking")
+    public List<LotEntity> getTrackingLots(@AuthenticationPrincipal JwtUserDetails principal) {
+        UserEntity user = principal.getUserEntity();
+        return trackingService.getUserTrackingLots(user.getId());
+    }
+
+//    @GetMapping("/me/bids")
+//    public List<LotEntity> getBids(@AuthenticationPrincipal JwtUserDetails principal) {
+//        UserEntity user = principal.getUserEntity();
+////        bidService.findAllByUserId(user.getId());
+//        return ;
 //    }
 }

@@ -70,7 +70,7 @@ public class LotGroupEntity {
         return Objects.hash(id, name, description, createdTime);
     }
 
-    @OneToMany(mappedBy = "lotsGroupEntity")
+    @OneToMany(mappedBy = "lotGroup")
     public List<LotEntity> getLotsById() {
         return lotsById;
     }

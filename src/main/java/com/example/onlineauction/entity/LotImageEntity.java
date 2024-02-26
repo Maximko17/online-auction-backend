@@ -11,7 +11,7 @@ public class LotImageEntity {
     private Long id;
     private String image;
     @JsonIgnore
-    private LotEntity lotEntity;
+    private LotEntity lot;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -49,11 +49,11 @@ public class LotImageEntity {
 
     @ManyToOne
     @JoinColumn(name = "lot_id", referencedColumnName = "id", nullable = false)
-    public LotEntity getLotEntity() {
-        return lotEntity;
+    public LotEntity getLot() {
+        return lot;
     }
 
-    public void setLotEntity(LotEntity lotsByLotId) {
-        this.lotEntity = lotsByLotId;
+    public void setLot(LotEntity lot) {
+        this.lot = lot;
     }
 }

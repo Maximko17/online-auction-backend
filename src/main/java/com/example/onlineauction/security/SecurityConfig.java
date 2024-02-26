@@ -47,6 +47,7 @@ public class SecurityConfig {
         configuration.setAllowedOrigins(Collections.singletonList("http://localhost:3000"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "OPTIONS"));
         configuration.addAllowedHeader("*");
+        configuration.setAllowCredentials(true);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
@@ -74,9 +75,10 @@ public class SecurityConfig {
                                 })
                 )
                 .authorizeHttpRequests(configurer ->
-                        configurer.requestMatchers("/api/v1/auth/**", "/api/v1/lots/{id}", "/api/v1/lots/**")
-                                .permitAll()
-                                .anyRequest().authenticated())
+                        configurer
+//                                .requestMatchers("/api/v1/auth/**", "/api/v1/lots/{id}", "/api/v1/lots/**", "/websocket/**")
+//                                .permitAll()
+                                .anyRequest().permitAll())
                 .anonymous(AbstractHttpConfigurer::disable)
                 .addFilterBefore(new JwtTokenFilter(tokenProvider), UsernamePasswordAuthenticationFilter.class);
 

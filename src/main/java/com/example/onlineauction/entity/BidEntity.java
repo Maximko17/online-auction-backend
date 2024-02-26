@@ -1,5 +1,6 @@
 package com.example.onlineauction.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 import java.math.BigDecimal;
@@ -12,8 +13,8 @@ public class BidEntity {
     private Long id;
     private BigDecimal bid;
     private LocalDateTime bidTime;
-    private LotEntity lotEntity;
-    private UserEntity userEntity;
+    private LotEntity lot;
+    private UserEntity user;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -60,22 +61,23 @@ public class BidEntity {
     }
 
     @ManyToOne
+    @JsonIgnore
     @JoinColumn(name = "lot_id", referencedColumnName = "id", nullable = false)
-    public LotEntity getLotEntity() {
-        return lotEntity;
+    public LotEntity getLot() {
+        return lot;
     }
 
-    public void setLotEntity(LotEntity lotsByLotId) {
-        this.lotEntity = lotsByLotId;
+    public void setLot(LotEntity lot) {
+        this.lot = lot;
     }
 
     @ManyToOne
     @JoinColumn(name = "user_id", referencedColumnName = "id", nullable = false)
-    public UserEntity getUserEntity() {
-        return userEntity;
+    public UserEntity getUser() {
+        return user;
     }
 
-    public void setUserEntity(UserEntity usersByUserId) {
-        this.userEntity = usersByUserId;
+    public void setUser(UserEntity user) {
+        this.user = user;
     }
 }

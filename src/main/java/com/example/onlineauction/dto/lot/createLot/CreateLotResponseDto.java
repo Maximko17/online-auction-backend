@@ -1,4 +1,4 @@
-package com.example.onlineauction.dto.lot;
+package com.example.onlineauction.dto.lot.createLot;
 
 import lombok.Data;
 import lombok.experimental.Accessors;

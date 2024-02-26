@@ -1,4 +1,4 @@
-package com.example.onlineauction.dto.lot;
+package com.example.onlineauction.dto.lot.createLot;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.NotEmpty;

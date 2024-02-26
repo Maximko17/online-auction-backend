@@ -7,7 +7,7 @@ import lombok.Setter;
 @Setter
 public class LotListOrderDto {
 
-    private Order userId;
+    private Order lotId;
 
     public enum Order {
         ASC,

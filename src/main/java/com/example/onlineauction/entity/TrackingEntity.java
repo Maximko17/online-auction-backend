@@ -1,36 +1,24 @@
 package com.example.onlineauction.entity;
 
 import jakarta.persistence.*;
+import lombok.Data;
 
 import java.util.Objects;
 
 @Entity
 @Table(name = "tracking", schema = "auction", catalog = "auction")
-@IdClass(TrackingEntityPK.class)
 public class TrackingEntity {
-    private Long userId;
-    private Long lotId;
-    private UserEntity userEntity;
-    private LotEntity lotEntity;
+    private TrackingEntityPK trackingEntityPK;
+    private UserEntity user;
+    private LotEntity lot;
 
-    @Id
-    @Column(name = "user_id")
-    public Long getUserId() {
-        return userId;
+    @EmbeddedId
+    public TrackingEntityPK getTrackingEntityPK() {
+        return trackingEntityPK;
     }
 
-    public void setUserId(Long userId) {
-        this.userId = userId;
-    }
-
-    @Id
-    @Column(name = "lot_id")
-    public Long getLotId() {
-        return lotId;
-    }
-
-    public void setLotId(Long lotId) {
-        this.lotId = lotId;
+    public void setTrackingEntityPK(TrackingEntityPK trackingEntityPK) {
+        this.trackingEntityPK = trackingEntityPK;
     }
 
     @Override
@@ -38,31 +26,33 @@ public class TrackingEntity {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         TrackingEntity that = (TrackingEntity) o;
-        return userId == that.userId && lotId == that.lotId;
+        return trackingEntityPK.equals(that.trackingEntityPK);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(userId, lotId);
+        return Objects.hash(trackingEntityPK);
     }
 
     @ManyToOne
-    @JoinColumn(name = "user_id", referencedColumnName = "id", nullable = false)
-    public UserEntity getUserEntity() {
-        return userEntity;
+    @MapsId("userId")
+    @JoinColumn(name = "user_id", referencedColumnName = "id")
+    public UserEntity getUser() {
+        return user;
     }
 
-    public void setUserEntity(UserEntity usersByUserId) {
-        this.userEntity = usersByUserId;
+    public void setUser(UserEntity usersByUserId) {
+        this.user = usersByUserId;
     }
 
     @ManyToOne
-    @JoinColumn(name = "lot_id", referencedColumnName = "id", nullable = false)
-    public LotEntity getLotEntity() {
-        return lotEntity;
+    @MapsId("lotId")
+    @JoinColumn(name = "lot_id", referencedColumnName = "id")
+    public LotEntity getLot() {
+        return lot;
     }
 
-    public void setLotEntity(LotEntity lotsByLotId) {
-        this.lotEntity = lotsByLotId;
+    public void setLot(LotEntity lotsByLotId) {
+        this.lot = lotsByLotId;
     }
 }

@@ -2,11 +2,14 @@ package com.example.onlineauction.entity;
 
 import jakarta.persistence.*;
 import org.hibernate.annotations.ColumnTransformer;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 @Entity
 @Table(name = "lots", schema = "auction", catalog = "auction")
@@ -19,7 +22,7 @@ public class LotEntity {
     private LocalDateTime startTime;
     private LocalDateTime endTime;
     private Status status;
-    private LotGroupEntity lotsGroupEntity;
+    private LotGroupEntity lotGroup;
     private List<LotImageEntity> images;
     private UserEntity seller;
 
@@ -119,17 +122,17 @@ public class LotEntity {
         return Objects.hash(id, name, description, bidIncrement, startBid, startTime, endTime, status);
     }
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "group_id", referencedColumnName = "id")
-    public LotGroupEntity getLotsGroupEntity() {
-        return lotsGroupEntity;
+    public LotGroupEntity getLotGroup() {
+        return lotGroup;
     }
 
-    public void setLotsGroupEntity(LotGroupEntity lotsGroupsByGroupId) {
-        this.lotsGroupEntity = lotsGroupsByGroupId;
+    public void setLotGroup(LotGroupEntity lotsGroupsByGroupId) {
+        this.lotGroup = lotsGroupsByGroupId;
     }
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "seller_id", referencedColumnName = "id", nullable = false)
     public UserEntity getSeller() {
         return seller;
@@ -139,7 +142,7 @@ public class LotEntity {
         this.seller = sellerEntity;
     }
 
-    @OneToMany(mappedBy = "lotEntity")
+    @OneToMany(mappedBy = "lot", fetch = FetchType.LAZY)
     public List<LotImageEntity> getImages() {
         return images;
     }
