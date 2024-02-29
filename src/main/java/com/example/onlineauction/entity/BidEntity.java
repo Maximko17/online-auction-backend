@@ -60,7 +60,7 @@ public class BidEntity {
         return Objects.hash(id, bid, bidTime);
     }
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JsonIgnore
     @JoinColumn(name = "lot_id", referencedColumnName = "id", nullable = false)
     public LotEntity getLot() {

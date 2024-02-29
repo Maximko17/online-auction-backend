@@ -5,8 +5,8 @@ create table if not exists users
 (
     id       bigint primary key GENERATED ALWAYS AS IDENTITY,
     username text,
-    password text not null,
-    email    text not null unique,
+    password text  not null,
+    email    text  not null unique,
     role     roles not null,
     rating   smallint,
     image    text
@@ -22,22 +22,6 @@ create table if not exists lots_groups
     constraint fk_lots_groups_user foreign key (creator_id) references users (id)
 );
 
-create table if not exists lots
-(
-    id            bigint primary key GENERATED ALWAYS AS IDENTITY,
-    group_id      bigint,
-    seller_id     bigint         not null,
-    name          text           not null,
-    description   text           not null,
-    bid_increment decimal(10, 2) not null,
-    start_bid     decimal(10, 2) not null,
-    start_time    timestamp      not null,
-    end_time      timestamp      not null,
-    status        status         not null,
-    constraint fk_lots_users foreign key (seller_id) references users (id),
-    constraint fk_lots_group foreign key (group_id) references lots_groups (id)
-);
-
 create table if not exists categories
 (
     id        bigint primary key GENERATED ALWAYS AS IDENTITY,
@@ -46,13 +30,24 @@ create table if not exists categories
     constraint fk_categories_parent foreign key (parent_id) references categories (id)
 );
 
-create table if not exists lots_categories
+create table if not exists lots
 (
-    category_id bigint not null,
-    lot_id      bigint not null,
-    primary key (category_id, lot_id),
-    constraint fk_lots_category foreign key (category_id) references categories (id),
-    constraint fk_categories_lot foreign key (lot_id) references lots (id)
+    id            bigint primary key GENERATED ALWAYS AS IDENTITY,
+    group_id      bigint,
+    seller_id     bigint         not null,
+    category_id   bigint         not null,
+    name          text           not null,
+    description   text           not null,
+    bid_increment decimal(10, 2) not null,
+    start_bid     decimal(10, 2) not null,
+    last_bid      decimal(10, 2),
+    total_bids    integer,
+    start_time    timestamp      not null,
+    end_time      timestamp      not null,
+    status        status         not null,
+    constraint fk_lots_users foreign key (seller_id) references users (id),
+    constraint fk_lots_group foreign key (group_id) references lots_groups (id),
+    constraint fk_lots_category foreign key (category_id) references categories (id)
 );
 
 create table if not exists lots_images
@@ -113,10 +108,10 @@ create table if not exists comments
 (
     id        bigint primary key GENERATED ALWAYS AS IDENTITY,
     parent_id bigint,
-    lot_id    bigint not null,
-    user_id   bigint not null,
-    comment   text   not null,
-    send_time timestamp   not null default current_timestamp,
+    lot_id    bigint    not null,
+    user_id   bigint    not null,
+    comment   text      not null,
+    send_time timestamp not null default current_timestamp,
     constraint fk_comments_parent foreign key (parent_id) references comments (id),
     constraint fk_comments_lot foreign key (lot_id) references lots (id),
     constraint fk_comments_user foreign key (user_id) references users (id)

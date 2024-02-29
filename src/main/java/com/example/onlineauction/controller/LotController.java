@@ -1,9 +1,8 @@
 package com.example.onlineauction.controller;
 
-import com.example.onlineauction.dto.bid.BidsCountAndMaxBidDto;
 import com.example.onlineauction.dto.bid.GetLotBidsDto;
 import com.example.onlineauction.dto.bid.NewBidRequestDto;
-import com.example.onlineauction.dto.lot.*;
+import com.example.onlineauction.dto.lot.LotInfoDto;
 import com.example.onlineauction.dto.lot.createLot.CreateLotRequestDto;
 import com.example.onlineauction.dto.lot.createLot.CreateLotResponseDto;
 import com.example.onlineauction.dto.lot.getLotList.GetLotListRequestDto;
@@ -47,9 +46,17 @@ public class LotController {
     private final ModelMapper modelMapper;
 
     @PostMapping
-    public GetLotListResponseDto getLotList(@RequestBody GetLotListRequestDto getLotListRequestDto) {
-        Page<LotEntity> lotByFilters = lotService.getListByFilters(getLotListRequestDto);
-        return new GetLotListResponseDto(lotByFilters.getContent(), lotByFilters.getTotalPages());
+    public GetLotListResponseDto getLotList(@RequestBody GetLotListRequestDto requestDto) {
+        Page<LotEntity> lotByFilters = lotService.getListByFilters(
+                requestDto.getFilters(),
+                requestDto.getOrder(),
+                requestDto.getPage(),
+                requestDto.getLimit()
+        );
+        List<LotInfoDto> lotInfoDtos = modelMapper
+                .map(lotByFilters.getContent(), new TypeToken<List<LotInfoDto>>() {}.getType());
+
+        return new GetLotListResponseDto(lotInfoDtos, lotByFilters.getTotalPages());
     }
 
     @PostMapping(path = "/new", consumes = "multipart/form-data")
@@ -65,11 +72,7 @@ public class LotController {
     @GetMapping("/{id}")
     public ResponseEntity<LotInfoDto> getLot(@PathVariable Long id) {
         LotEntity lotEntity = lotService.getFullLotInfo(id);
-        BidsCountAndMaxBidDto bidCountAndMax = bidService.getBidsCountAndMaxBidByLotId(id);
-
         LotInfoDto lotInfo = modelMapper.map(lotEntity, LotInfoDto.class);
-        lotInfo.setLastBid(bidCountAndMax.getLastBid());
-        lotInfo.setTotalBids(bidCountAndMax.getTotalBids());
 
         return new ResponseEntity<>(lotInfo, HttpStatus.OK);
     }
@@ -84,10 +87,11 @@ public class LotController {
     }
 
     @GetMapping("/{id}/bids")
-    public ResponseEntity<List<GetLotBidsDto>> bids(@PathVariable("id") Long lotId) throws IOException {
+    public ResponseEntity<List<GetLotBidsDto>> bids(@PathVariable("id") Long lotId) {
         List<BidEntity> bids = bidService.findAllByLotId(lotId);
         List<GetLotBidsDto> lotBidsDtos = modelMapper
-                .map(bids, new TypeToken<List<GetLotBidsDto>>() {}.getType());
+                .map(bids, new TypeToken<List<GetLotBidsDto>>() {
+                }.getType());
         return new ResponseEntity<>(lotBidsDtos, HttpStatus.OK);
     }
 

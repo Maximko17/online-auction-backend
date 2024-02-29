@@ -8,7 +8,7 @@ import org.springframework.data.domain.Page;
 import java.util.Optional;
 
 public interface LotCustomRepository {
-    Page<LotEntity> findByFilters(LotListFiltersDto filters, LotListOrderDto sort, int page, int limit);
+    Page<LotEntity> findByFilters(LotListFiltersDto filters, LotListOrderDto sort, Integer page, Integer limit);
 
     Optional<LotEntity> findFullLotInfo(Long id);
 }

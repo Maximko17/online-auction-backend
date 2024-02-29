@@ -26,7 +26,7 @@ public class MailService {
         MimeMessageHelper helper = new MimeMessageHelper(mimeMessage,
                 false,
                 "UTF-8");
-        helper.setSubject("Thank you for registration");
+        helper.setSubject("Регистрация на онлайн-аукционе BidZone");
         helper.setFrom("maxim.suhodolets@yandex.ru");
         helper.setTo(email);
         String emailContent = getRegistrationEmailContent(token);

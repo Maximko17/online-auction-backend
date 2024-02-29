@@ -1,18 +1,14 @@
 package com.example.onlineauction.service;
 
-import com.example.onlineauction.dto.bid.BidsCountAndMaxBidDto;
-import com.example.onlineauction.dto.lot.LotInfoDto;
+import com.example.onlineauction.dto.lot.LotListFiltersDto;
+import com.example.onlineauction.dto.lot.LotListOrderDto;
 import com.example.onlineauction.dto.lot.getLotList.GetLotListRequestDto;
-import com.example.onlineauction.entity.LotEntity;
-import com.example.onlineauction.entity.LotImageEntity;
-import com.example.onlineauction.entity.Status;
-import com.example.onlineauction.entity.UserEntity;
+import com.example.onlineauction.entity.*;
 import com.example.onlineauction.exception.ResourceNotFoundException;
 import com.example.onlineauction.repository.LotImageRepository;
 import com.example.onlineauction.repository.LotRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -34,8 +30,11 @@ public class LotService {
 
     @Transactional
     public Long create(LotEntity lotEntity, List<MultipartFile> images, UserEntity authUser) {
+        CategoryEntity categoryEntity = new CategoryEntity();
+        categoryEntity.setName("TEST");
         lotEntity.setSeller(authUser);
         lotEntity.setStatus(Status.REVIEW);
+        lotEntity.setCategory(categoryEntity);
         LotEntity savedLot = lotRepository.save(lotEntity);
 
         List<LotImageEntity> lotImages = images.stream()
@@ -75,11 +74,14 @@ public class LotService {
                 .orElseThrow(() -> new ResourceNotFoundException("Lot not found."));
     }
 
-    public Page<LotEntity> getListByFilters(GetLotListRequestDto requestDto) {
-        return lotRepository.findByFilters(
-                requestDto.getFilters(),
-                requestDto.getOrder(),
-                requestDto.getPage(),
-                requestDto.getLimit());
+    public Page<LotEntity> getListByFilters(LotListFiltersDto filters, LotListOrderDto order, Integer page, Integer limit) {
+        return lotRepository.findByFilters(filters, order, page, limit);
+    }
+
+    public LotEntity update(LotEntity lotEntity) {
+        if (lotEntity == null) {
+            return null;
+        }
+        return lotRepository.save(lotEntity);
     }
 }

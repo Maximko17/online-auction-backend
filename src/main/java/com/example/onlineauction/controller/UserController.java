@@ -1,15 +1,18 @@
 package com.example.onlineauction.controller;
 
+import com.example.onlineauction.dto.lot.LotInfoDto;
+import com.example.onlineauction.dto.lot.getLotList.GetLotListRequestDto;
+import com.example.onlineauction.dto.lot.getLotList.GetLotListResponseDto;
 import com.example.onlineauction.entity.LotEntity;
-import com.example.onlineauction.entity.UserEntity;
 import com.example.onlineauction.security.JwtUserDetails;
-import com.example.onlineauction.service.BidService;
-import com.example.onlineauction.service.TrackingService;
+import com.example.onlineauction.service.LotService;
 import lombok.RequiredArgsConstructor;
+import org.modelmapper.ModelMapper;
+import org.modelmapper.TypeToken;
+import org.springframework.data.domain.Page;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -18,19 +21,40 @@ import java.util.List;
 @RequiredArgsConstructor
 public class UserController {
 
-    private final TrackingService trackingService;
-    private final BidService bidService;
+    private final LotService lotService;
+    private final ModelMapper modelMapper;
 
-    @GetMapping("/me/lots/tracking")
-    public List<LotEntity> getTrackingLots(@AuthenticationPrincipal JwtUserDetails principal) {
-        UserEntity user = principal.getUserEntity();
-        return trackingService.getUserTrackingLots(user.getId());
+    @PostMapping("/me/lots/tracking")
+    public GetLotListResponseDto getTrackingLots(@Validated @RequestBody GetLotListRequestDto requestDto,
+                                                 @AuthenticationPrincipal JwtUserDetails principal) {
+        requestDto.getFilters().setTrackingUserId(principal.getUserEntity().getId());
+        Page<LotEntity> lotEntities = lotService
+                .getListByFilters(
+                        requestDto.getFilters(),
+                        requestDto.getOrder(),
+                        requestDto.getPage(),
+                        requestDto.getLimit()
+                );
+        List<LotInfoDto> lotInfoDtos = modelMapper
+                .map(lotEntities.getContent(), new TypeToken<List<LotInfoDto>>() {}.getType());
+
+        return new GetLotListResponseDto(lotInfoDtos, lotEntities.getTotalPages());
     }
 
-//    @GetMapping("/me/bids")
-//    public List<LotEntity> getBids(@AuthenticationPrincipal JwtUserDetails principal) {
-//        UserEntity user = principal.getUserEntity();
-////        bidService.findAllByUserId(user.getId());
-//        return ;
-//    }
+    @PostMapping("/me/bids/lots")
+    public GetLotListResponseDto getBidsLots(@Validated @RequestBody GetLotListRequestDto requestDto,
+                                             @AuthenticationPrincipal JwtUserDetails principal) {
+        requestDto.getFilters().setBidUserId(principal.getUserEntity().getId());
+        Page<LotEntity> lotEntities = lotService
+                .getListByFilters(
+                        requestDto.getFilters(),
+                        requestDto.getOrder(),
+                        requestDto.getPage(),
+                        requestDto.getLimit()
+                );
+        List<LotInfoDto> lotInfoDtos = modelMapper
+                .map(lotEntities.getContent(), new TypeToken<List<LotInfoDto>>() {}.getType());
+
+        return new GetLotListResponseDto(lotInfoDtos, lotEntities.getTotalPages());
+    }
 }

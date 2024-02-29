@@ -34,7 +34,7 @@ public class TrackingEntity {
         return Objects.hash(trackingEntityPK);
     }
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @MapsId("userId")
     @JoinColumn(name = "user_id", referencedColumnName = "id")
     public UserEntity getUser() {
@@ -45,7 +45,7 @@ public class TrackingEntity {
         this.user = usersByUserId;
     }
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @MapsId("lotId")
     @JoinColumn(name = "lot_id", referencedColumnName = "id")
     public LotEntity getLot() {

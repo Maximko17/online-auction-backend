@@ -19,12 +19,17 @@ public class LotEntity {
     private String description;
     private BigDecimal bidIncrement;
     private BigDecimal startBid;
+    private BigDecimal lastBid;
+    private Integer totalBids;
     private LocalDateTime startTime;
     private LocalDateTime endTime;
     private Status status;
     private LotGroupEntity lotGroup;
     private List<LotImageEntity> images;
     private UserEntity seller;
+    private CategoryEntity category;
+    private List<TrackingEntity> tracking;
+    private List<BidEntity> bids;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -75,6 +80,26 @@ public class LotEntity {
 
     public void setStartBid(BigDecimal startBid) {
         this.startBid = startBid;
+    }
+
+    @Basic
+    @Column(name = "last_bid")
+    public BigDecimal getLastBid() {
+        return lastBid;
+    }
+
+    public void setLastBid(BigDecimal lastBid) {
+        this.lastBid = lastBid;
+    }
+
+    @Basic
+    @Column(name = "total_bids")
+    public Integer getTotalBids() {
+        return totalBids;
+    }
+
+    public void setTotalBids(Integer totalBids) {
+        this.totalBids = totalBids;
     }
 
     @Basic
@@ -142,12 +167,40 @@ public class LotEntity {
         this.seller = sellerEntity;
     }
 
-    @OneToMany(mappedBy = "lot", fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
+    @JoinColumn(name = "category_id", referencedColumnName = "id", nullable = false)
+    public CategoryEntity getCategory() {
+        return category;
+    }
+
+    public void setCategory(CategoryEntity category) {
+        this.category = category;
+    }
+
+    @OneToMany(mappedBy = "lot", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     public List<LotImageEntity> getImages() {
         return images;
     }
 
     public void setImages(List<LotImageEntity> lotImages) {
         this.images = lotImages;
+    }
+
+    @OneToMany(mappedBy = "lot", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    public List<TrackingEntity> getTracking() {
+        return tracking;
+    }
+
+    public void setTracking(List<TrackingEntity> tracking) {
+        this.tracking = tracking;
+    }
+
+    @OneToMany(mappedBy = "lot", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    public List<BidEntity> getBids() {
+        return bids;
+    }
+
+    public void setBids(List<BidEntity> bids) {
+        this.bids = bids;
     }
 }

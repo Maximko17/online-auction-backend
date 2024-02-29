@@ -40,21 +40,19 @@ public class BidService {
         bidEntity.setUser(authUser);
         bidsRepository.save(bidEntity);
 
+        lotEntity.setLastBid(bid);
+        lotEntity.setTotalBids(lotEntity.getTotalBids() == null ? 0 : lotEntity.getTotalBids() + 1);
+        lotService.update(lotEntity);
+
         publisher.publishEvent(bidEntity);
-
         return 1L;
-    }
-
-    public BidsCountAndMaxBidDto getBidsCountAndMaxBidByLotId(Long lotId) {
-        return bidsRepository.findCountAndMaxBidByLotId(lotId)
-                .orElseGet(() -> new BidsCountAndMaxBidDto(new BigDecimal(0), 0));
     }
 
     public List<BidEntity> findAllByLotId(Long lotId) {
         return bidsRepository.findAllByLotId(lotId);
     }
 
-    public List<BidEntity> getUserBids(Long userId) {
+    public List<BidEntity> getUserBidLots(Long userId) {
         List<BidEntity> userBids = bidsRepository.findAllByUserId(userId);
 //        lotService.
         return userBids;

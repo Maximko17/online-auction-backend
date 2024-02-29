@@ -2,10 +2,7 @@ package com.example.onlineauction.repository.impl;
 
 import com.example.onlineauction.dto.lot.LotListFiltersDto;
 import com.example.onlineauction.dto.lot.LotListOrderDto;
-import com.example.onlineauction.entity.LotEntity;
-import com.example.onlineauction.entity.QLotEntity;
-import com.example.onlineauction.entity.QLotImageEntity;
-import com.example.onlineauction.entity.QUserEntity;
+import com.example.onlineauction.entity.*;
 import com.example.onlineauction.repository.LotCustomRepository;
 import com.querydsl.core.QueryModifiers;
 import com.querydsl.core.types.OrderSpecifier;
@@ -29,14 +26,18 @@ public class LotCustomRepositoryImpl implements LotCustomRepository {
     @PersistenceContext
     private final EntityManager entityManager;
 
-    public Page<LotEntity> findByFilters(LotListFiltersDto filters, LotListOrderDto order, int page, int limit) {
+    public Page<LotEntity> findByFilters(LotListFiltersDto filters, LotListOrderDto order, Integer page, Integer limit) {
         QLotEntity lot = QLotEntity.lotEntity;
         QLotImageEntity lotImage = QLotImageEntity.lotImageEntity;
         QUserEntity seller = QUserEntity.userEntity;
+        QTrackingEntity trackingEntity = QTrackingEntity.trackingEntity;
+        QBidEntity bidEntity = QBidEntity.bidEntity;
 
         Predicate whereClause = filters == null ? null
                 : QPredicate.builder()
                 .add(filters.getSellerId(), lot.seller.id::eq)
+                .add(filters.getTrackingUserId(), trackingEntity.user.id::eq)
+                .add(filters.getBidUserId(), bidEntity.user.id::eq)
                 .buildAnd();
 
         OrderSpecifier<?>[] orderClause = order == null ? new OrderSpecifier<?>[]{}
@@ -47,12 +48,16 @@ public class LotCustomRepositoryImpl implements LotCustomRepository {
         Long totalCount = new JPAQuery<>(entityManager)
                 .select(lot.id.count())
                 .from(lot)
+                .leftJoin(lot.tracking, trackingEntity)
+                .leftJoin(lot.bids, bidEntity)
                 .where(whereClause)
                 .fetchOne();
 
-        var filterQuery = new JPAQuery<>(entityManager)
+        var filteredLotsIds = new JPAQuery<>(entityManager)
                 .select(lot.id)
                 .from(lot)
+                .leftJoin(lot.tracking, trackingEntity)
+                .leftJoin(lot.bids, bidEntity)
                 .where(whereClause)
                 .restrict(new QueryModifiers((long) limit, (long) (page - 1) * limit))
                 .fetch();
@@ -62,7 +67,8 @@ public class LotCustomRepositoryImpl implements LotCustomRepository {
                 .from(lot)
                 .innerJoin(lot.images, lotImage).fetchJoin()
                 .innerJoin(lot.seller, seller).fetchJoin()
-                .where(lot.id.in(filterQuery))
+                .leftJoin(lot.tracking, trackingEntity)
+                .where(lot.id.in(filteredLotsIds))
                 .orderBy(orderClause)
                 .fetch();
 
@@ -74,12 +80,14 @@ public class LotCustomRepositoryImpl implements LotCustomRepository {
         QLotEntity lot = QLotEntity.lotEntity;
         QLotImageEntity lotImage = QLotImageEntity.lotImageEntity;
         QUserEntity seller = QUserEntity.userEntity;
+        QTrackingEntity tracking = QTrackingEntity.trackingEntity;
 
         return Optional.ofNullable(new JPAQuery<>(entityManager)
                 .select(lot)
                 .from(lot)
                 .innerJoin(lot.images, lotImage).fetchJoin()
                 .innerJoin(lot.seller, seller).fetchJoin()
+                .leftJoin(lot.tracking, tracking).fetchJoin()
                 .where(lot.id.eq(lotId))
                 .fetchOne());
     }

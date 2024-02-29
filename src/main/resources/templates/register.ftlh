@@ -2,38 +2,40 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Thank you for registration</title>
+    <title>Спасибо за регитрацию</title>
     <style>
-        #body {
+        .container {
             display: flex;
-            flex-direction: column;
             font-family: "Segoe UI", serif;
-            align-items: center;
-            background-color: #607FF2;
-            font-size: 20px;
             height: 100%;
+            width: 100%;
+            justify-content: center;
+            background-color: #607ff2;
         }
 
-        #div {
-            display: block;
-            flex-direction: column;
-            margin: 10%;
+        .container-text {
+            margin: 5%;
             font-family: "Segoe UI", serif;
             background-color: white;
-            padding: 3%;
+            padding: 0 20px 20px 20px;
             border-radius: 20px;
+            width: 100%;
             color: black;
+            text-align: center;
         }
     </style>
 </head>
 <body>
-<div id="body">
-    <div id="div">
-        <h1 style="text-align: center">Registration</h1>
+<div class="container">
+    <div class="container-text">
+        <h1 style="text-align: center">Регистрация</h1>
         <span>
-            <a href="http://localhost:3000/sign-up?token=${token}">Click here</a>
-             to verify email
+            <a href="http://localhost:3000/sign-up?token=${token}">Кликните здесь</a>
+             чтобы подтвердить email и продолжить процесс регистрации.
         </span>
+        <p>
+            Если вы не запрашивали регистрацию - просто проигнорируйте это сообщение.
+        </p>
     </div>
 </div>
 </body>

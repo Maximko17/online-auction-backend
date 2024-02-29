@@ -6,4 +6,6 @@ import lombok.Data;
 public class LotListFiltersDto {
 
     private Long sellerId;
+    private Long trackingUserId;
+    private Long bidUserId;
 }

@@ -22,9 +22,15 @@ public class ControllerAdvice {
         return new ExceptionBody(e.getMessage());
     }
 
-    @ExceptionHandler(ResourceMappingException.class)
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public ExceptionBody handleResourceMapping(ResourceMappingException e) {
+    @ExceptionHandler(UnauthorizedException.class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public ExceptionBody unauthorizedException(UnauthorizedException e) {
+        return new ExceptionBody(e.getMessage());
+    }
+
+    @ExceptionHandler(ConflictException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ExceptionBody handleConflictException(ConflictException e) {
         return new ExceptionBody(e.getMessage());
     }
 

@@ -1,5 +1,6 @@
 package com.example.onlineauction.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 import java.util.List;
@@ -11,8 +12,7 @@ public class CategoryEntity {
     private Long id;
     private String name;
     private CategoryEntity parentCategory;
-    private List<CategoryEntity> categoryEntities;
-    private List<LotCategoryEntity> lotsCategoriesById;
+//    private List<CategoryEntity> categoryEntities;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -48,7 +48,7 @@ public class CategoryEntity {
         return Objects.hash(id, name);
     }
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_id", referencedColumnName = "id")
     public CategoryEntity getParentCategory() {
         return parentCategory;
@@ -58,21 +58,13 @@ public class CategoryEntity {
         this.parentCategory = categoriesByParentId;
     }
 
-    @OneToMany(mappedBy = "parentCategory")
-    public List<CategoryEntity> getCategoryEntities() {
-        return categoryEntities;
-    }
+//    @OneToMany(mappedBy = "parentCategory")
+//    public List<CategoryEntity> getCategoryEntities() {
+//        return categoryEntities;
+//    }
+//
+//    public void setCategoryEntities(List<CategoryEntity> categoriesById) {
+//        this.categoryEntities = categoriesById;
+//    }
 
-    public void setCategoryEntities(List<CategoryEntity> categoriesById) {
-        this.categoryEntities = categoriesById;
-    }
-
-    @OneToMany(mappedBy = "categoriesByCategoryId")
-    public List<LotCategoryEntity> getLotsCategoriesById() {
-        return lotsCategoriesById;
-    }
-
-    public void setLotsCategoriesById(List<LotCategoryEntity> lotsCategoriesById) {
-        this.lotsCategoriesById = lotsCategoriesById;
-    }
 }

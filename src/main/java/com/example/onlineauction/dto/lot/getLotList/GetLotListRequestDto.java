@@ -10,7 +10,7 @@ public class GetLotListRequestDto {
     private LotListFiltersDto filters;
     private LotListOrderDto order;
     @NotNull
-    private int page;
+    private Integer page;
     @NotNull
-    private int limit;
+    private Integer limit;
 }

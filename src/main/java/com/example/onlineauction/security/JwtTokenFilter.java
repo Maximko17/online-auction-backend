@@ -1,6 +1,5 @@
 package com.example.onlineauction.security;
 
-import com.example.onlineauction.exception.ResourceNotFoundException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletRequest;
