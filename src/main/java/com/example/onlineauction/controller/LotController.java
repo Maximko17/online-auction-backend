@@ -29,16 +29,15 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
-import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @RestController
 @RequestMapping("/api/v1/lots")
 @RequiredArgsConstructor
 public class LotController {
-    private final Set<SseEmitter> clients = new CopyOnWriteArraySet<>();
+    private final Map<Long, SseEmitter> sseClients = new ConcurrentHashMap<>();
 
     private final LotService lotService;
     private final TrackingService trackingService;
@@ -47,16 +46,13 @@ public class LotController {
 
     @PostMapping
     public GetLotListResponseDto getLotList(@RequestBody GetLotListRequestDto requestDto) {
-        Page<LotEntity> lotByFilters = lotService.getListByFilters(
+        Page<LotInfoDto> lotByFilters = lotService.getListByFilters(
                 requestDto.getFilters(),
                 requestDto.getOrder(),
                 requestDto.getPage(),
                 requestDto.getLimit()
         );
-        List<LotInfoDto> lotInfoDtos = modelMapper
-                .map(lotByFilters.getContent(), new TypeToken<List<LotInfoDto>>() {}.getType());
-
-        return new GetLotListResponseDto(lotInfoDtos, lotByFilters.getTotalPages());
+        return new GetLotListResponseDto(lotByFilters.getContent(), lotByFilters.getTotalPages());
     }
 
     @PostMapping(path = "/new", consumes = "multipart/form-data")
@@ -71,10 +67,9 @@ public class LotController {
 
     @GetMapping("/{id}")
     public ResponseEntity<LotInfoDto> getLot(@PathVariable Long id) {
-        LotEntity lotEntity = lotService.getFullLotInfo(id);
-        LotInfoDto lotInfo = modelMapper.map(lotEntity, LotInfoDto.class);
+        LotInfoDto fullLotInfo = lotService.getFullLotInfo(id);
 
-        return new ResponseEntity<>(lotInfo, HttpStatus.OK);
+        return new ResponseEntity<>(fullLotInfo, HttpStatus.OK);
     }
 
     @PostMapping(path = "/{id}/bids/new")
@@ -98,9 +93,15 @@ public class LotController {
     @GetMapping("/{id}/bids-stream")
     public SseEmitter bidsStream(@PathVariable("id") Long lotId) throws IOException {
         SseEmitter emitter = new SseEmitter();
-        clients.add(emitter);
-        emitter.onTimeout(() -> clients.remove(emitter));
-        emitter.onError(throwable -> clients.remove(emitter));
+        sseClients.computeIfPresent(lotId, (s, o) -> {
+            if (lotService.isClosedById(lotId)) {
+                emitter.completeWithError(new IllegalStateException("Lot auction already closed"));
+            }
+            return null;
+        });
+        sseClients.putIfAbsent(lotId, emitter);
+        emitter.onTimeout(() -> sseClients.compute(lotId, (s, o) -> null));
+        emitter.onError(throwable -> sseClients.compute(lotId, (s, o) -> null));
 
         emitter.send(SseEmitter.event()
                 .id(String.valueOf(lotId))
@@ -117,18 +118,24 @@ public class LotController {
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
+    @DeleteMapping("/{id}/track")
+    public ResponseEntity<Void> deleteTrack(@PathVariable("id") Long lotId,
+                                            @AuthenticationPrincipal JwtUserDetails principal) {
+        trackingService.deleteTrack(principal.getUserEntity(), lotId);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+    }
+
     @Async
     @EventListener
     public void bidsChangeHandler(BidEntity bidEntity) {
-        List<SseEmitter> errorEmitters = new ArrayList<>();
-        clients.forEach(emitter -> {
+        sseClients.computeIfPresent(bidEntity.getLot().getId(), (lotId, emitter) -> {
             try {
                 emitter.send(bidEntity, MediaType.APPLICATION_JSON);
             } catch (Exception e) {
-                errorEmitters.add(emitter);
+                sseClients.compute(lotId, (s, o) -> null);
             }
+            return emitter;
         });
-        errorEmitters.forEach(clients::remove);
     }
 
 }

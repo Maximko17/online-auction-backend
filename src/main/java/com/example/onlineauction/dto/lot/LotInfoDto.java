@@ -2,9 +2,7 @@ package com.example.onlineauction.dto.lot;
 
 import com.example.onlineauction.dto.user.UserInfoDto;
 import com.example.onlineauction.entity.Status;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -12,26 +10,19 @@ import java.util.List;
 
 @Getter
 @Setter
-@NoArgsConstructor
+@RequiredArgsConstructor
 public class LotInfoDto {
-    private Long id;
-    private String name;
-    private String description;
-    private BigDecimal bidIncrement;
-    private BigDecimal startBid;
-    private BigDecimal lastBid;
-    private Integer totalBids;
-    private LocalDateTime startTime;
-    private LocalDateTime endTime;
-    private Status status;
-    private List<ImageInfoDto> images;
-    private UserInfoDto seller;
-    private boolean isTracking;
-
-    @Getter
-    @Setter
-    public static class ImageInfoDto {
-        private Long id;
-        private String image;
-    }
+    private final Long id;
+    private final String name;
+    private final String description;
+    private final BigDecimal bidIncrement;
+    private final BigDecimal startBid;
+    private final BigDecimal lastBid;
+    private final Integer totalBids;
+    private final LocalDateTime startTime;
+    private final LocalDateTime endTime;
+    private final Status status;
+    private List<String> images;
+    private final UserInfoDto seller;
+    private final Boolean isTracking;
 }

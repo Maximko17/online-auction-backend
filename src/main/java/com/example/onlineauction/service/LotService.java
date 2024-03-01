@@ -1,8 +1,8 @@
 package com.example.onlineauction.service;
 
+import com.example.onlineauction.dto.lot.LotInfoDto;
 import com.example.onlineauction.dto.lot.LotListFiltersDto;
 import com.example.onlineauction.dto.lot.LotListOrderDto;
-import com.example.onlineauction.dto.lot.getLotList.GetLotListRequestDto;
 import com.example.onlineauction.entity.*;
 import com.example.onlineauction.exception.ResourceNotFoundException;
 import com.example.onlineauction.repository.LotImageRepository;
@@ -28,12 +28,16 @@ public class LotService {
     private final LotRepository lotRepository;
     private final LotImageRepository lotImageRepository;
 
+    public Page<LotInfoDto> getListByFilters(LotListFiltersDto filters, LotListOrderDto order, Integer page, Integer limit) {
+       return lotRepository.findByFilters(filters, order, page, limit);
+    }
+
     @Transactional
     public Long create(LotEntity lotEntity, List<MultipartFile> images, UserEntity authUser) {
         CategoryEntity categoryEntity = new CategoryEntity();
         categoryEntity.setName("TEST");
         lotEntity.setSeller(authUser);
-        lotEntity.setStatus(Status.REVIEW);
+        lotEntity.setStatus(Status.NEW);
         lotEntity.setCategory(categoryEntity);
         LotEntity savedLot = lotRepository.save(lotEntity);
 
@@ -51,22 +55,20 @@ public class LotService {
     }
 
     @Transactional
-    public LotEntity getFullLotInfo(Long id) {
-        LotEntity lotEntity = lotRepository.findFullLotInfo(id)
+    public LotInfoDto getFullLotInfo(Long id) {
+        LotInfoDto lotInfoDto = lotRepository.findFullLotInfo(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Lot not found."));
 
-        if (lotEntity.getStatus().equals(Status.ACTIVE)
-                && LocalDateTime.now().isAfter(lotEntity.getEndTime())) {
-            lotEntity.setStatus(Status.CLOSED);
-            lotRepository.save(lotEntity);
-        }
-        if (lotEntity.getStatus().equals(Status.NEW)
-                && LocalDateTime.now().isAfter(lotEntity.getStartTime())) {
-            lotEntity.setStatus(Status.ACTIVE);
-            lotRepository.save(lotEntity);
+        if (LocalDateTime.now().isAfter(lotInfoDto.getStartTime())
+                && LocalDateTime.now().isBefore(lotInfoDto.getEndTime())
+                && !lotInfoDto.getStatus().equals(Status.ACTIVE)) {
+            lotRepository.markAsActive(lotInfoDto.getId());
+        } else if (LocalDateTime.now().isAfter(lotInfoDto.getEndTime())
+                && !lotInfoDto.getStatus().equals(Status.CLOSED)) {
+            lotRepository.markAsClosed(lotInfoDto.getId());
         }
 
-        return lotEntity;
+        return lotInfoDto;
     }
 
     public LotEntity getById(Long id) {
@@ -74,14 +76,15 @@ public class LotService {
                 .orElseThrow(() -> new ResourceNotFoundException("Lot not found."));
     }
 
-    public Page<LotEntity> getListByFilters(LotListFiltersDto filters, LotListOrderDto order, Integer page, Integer limit) {
-        return lotRepository.findByFilters(filters, order, page, limit);
-    }
-
     public LotEntity update(LotEntity lotEntity) {
         if (lotEntity == null) {
             return null;
         }
         return lotRepository.save(lotEntity);
+    }
+
+    public boolean isClosedById(Long lotId) {
+        LotEntity lot = this.getById(lotId);
+        return lot.getStatus().equals(Status.CLOSED);
     }
 }
