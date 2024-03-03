@@ -3,17 +3,14 @@ package com.example.onlineauction.service;
 import com.example.onlineauction.dto.auth.JwtResponseDto;
 import com.example.onlineauction.dto.auth.LoginRequestDto;
 import com.example.onlineauction.dto.auth.RegisterRequestDto;
+import com.example.onlineauction.dto.auth.ResetPasswordRequestDto;
 import com.example.onlineauction.entity.UserEntity;
-import com.example.onlineauction.exception.AccessDeniedException;
-import com.example.onlineauction.exception.ConflictException;
-import com.example.onlineauction.exception.UnauthorizedException;
+import com.example.onlineauction.exception.*;
 import com.example.onlineauction.security.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Optional;
 
@@ -45,31 +42,58 @@ public class AuthService {
         }
         String tokenEmail = jwtTokenProvider.getEmail(registerRequestDto.getToken());
         if (!tokenEmail.equals(registerRequestDto.getEmail())) {
-            throw new IllegalStateException(
+            throw new UnprocessedException(
                     "Email do not match."
             );
         }
         if (userService.existsByEmail(tokenEmail)) {
-            throw new ConflictException(String.format("User with email '%s' already exists", tokenEmail));
+            throw new UnprocessedException(String.format("User with email '%s' already exists", tokenEmail));
         }
         if (!registerRequestDto.getPassword().equals(registerRequestDto.getPasswordConfirmation())) {
-            throw new IllegalStateException(
+            throw new UnprocessedException(
                     "Password and password confirmation do not match."
             );
         }
-        UserEntity user = userService.create(registerRequestDto.getEmail(), registerRequestDto.getUsername(), registerRequestDto.getPassword());
+        UserEntity user = userService.create(
+                registerRequestDto.getEmail(),
+                registerRequestDto.getUsername(),
+                registerRequestDto.getPassword()
+        );
         return new JwtResponseDto()
                 .setAccessToken(jwtTokenProvider.createAccessToken(user))
                 .setRefreshToken(jwtTokenProvider.createRefreshToken(user));
     }
 
-    public void sendVerificationEmail(String email) {
+    public void resetPassword(ResetPasswordRequestDto requestDto) {
+        if (!jwtTokenProvider.validateToken(requestDto.getToken())) {
+            throw new AccessDeniedException();
+        }
+        if (!requestDto.getPassword().equals(requestDto.getPasswordConfirmation())) {
+            throw new UnprocessedException(
+                    "Password and password confirmation do not match."
+            );
+        }
+        UserEntity user = userService.getByEmail(jwtTokenProvider.getEmail(requestDto.getToken()));
+        user.setPassword(requestDto.getPassword());
+        userService.update(user);
+    }
+
+    public void sendRegisterEmail(String email) {
         Optional<UserEntity> user = userService.findByEmail(email);
         if (user.isPresent()) {
             throw new IllegalStateException("User already exists");
         }
-        String emailVerificationToken = jwtTokenProvider.createEmailVerificationToken(email);
-        mailService.sendRegistrationEmail(email, emailVerificationToken);
+        String token = jwtTokenProvider.createEmailVerificationToken(email);
+        mailService.sendRegistrationEmail(email, token);
+    }
+
+    public void sendResetPasswordEmail(String email) {
+        Optional<UserEntity> user = userService.findByEmail(email);
+        if (user.isEmpty()) {
+            throw new ResourceNotFoundException("User with this email does not exists");
+        }
+        String token = jwtTokenProvider.createEmailVerificationToken(email);
+        mailService.sendResetPasswordEmail(email, token);
     }
 
     public JwtResponseDto refresh(String refreshToken) {

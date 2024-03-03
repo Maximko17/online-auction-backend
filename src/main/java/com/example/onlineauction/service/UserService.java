@@ -40,7 +40,7 @@ public class UserService {
     }
 
     @Transactional
-    public UserEntity update(final UserEntity user) {
+    public UserEntity update(UserEntity user) {
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         userRepository.save(user);
         return user;

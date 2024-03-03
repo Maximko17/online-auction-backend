@@ -27,10 +27,22 @@ public class AuthController {
         return authService.register(registerRequestDto);
     }
 
-    @PostMapping("/verification")
-    public ResponseEntity<Void> verifyEmail(@Validated @RequestBody VerifyEmailRequestDto verifyEmailRequestDto) {
-        authService.sendVerificationEmail(verifyEmailRequestDto.getEmail());
-        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+    @PostMapping("/send-register-email")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void sendRegisterEmail(@Validated @RequestBody EmailRequestDto emailRequestDto) {
+        authService.sendRegisterEmail(emailRequestDto.getEmail());
+    }
+
+    @PostMapping("/send-reset-password-email")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void sendResetPasswordEmail(@Validated @RequestBody EmailRequestDto emailRequestDto) {
+        authService.sendResetPasswordEmail(emailRequestDto.getEmail());
+    }
+
+    @PutMapping("/reset-password")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void resetPassword(@Validated @RequestBody ResetPasswordRequestDto resetPasswordRequestDto) {
+        authService.resetPassword(resetPasswordRequestDto);
     }
 
     @PostMapping("/refresh")
