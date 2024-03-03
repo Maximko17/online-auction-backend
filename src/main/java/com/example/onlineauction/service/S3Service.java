@@ -5,6 +5,8 @@ import com.example.onlineauction.props.MinioProperties;
 import io.minio.*;
 import io.minio.errors.*;
 import io.minio.http.Method;
+import io.minio.messages.DeleteError;
+import io.minio.messages.DeleteObject;
 import io.minio.messages.Item;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
@@ -15,11 +17,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class ImageService {
+public class S3Service {
 
     private final MinioClient minioClient;
     private final MinioProperties minioProperties;
@@ -42,6 +46,14 @@ public class ImageService {
         }
         saveImage(inputStream, fileName);
         return fileName;
+    }
+
+    public void delete(List<String> objects) {
+        minioClient.removeObjects(RemoveObjectsArgs.builder()
+                .bucket(minioProperties.getBucket())
+                .objects(objects.stream().map(DeleteObject::new).collect(Collectors.toList()))
+                .build()
+        );
     }
 
     @SneakyThrows

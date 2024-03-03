@@ -10,7 +10,6 @@ import java.util.List;
 
 @Getter
 @Setter
-@RequiredArgsConstructor
 public class LotInfoDto {
     private final Long id;
     private final String name;
@@ -21,8 +20,23 @@ public class LotInfoDto {
     private final Integer totalBids;
     private final LocalDateTime startTime;
     private final LocalDateTime endTime;
-    private final Status status;
+    private Status status;
     private List<String> images;
     private final UserInfoDto seller;
     private final Boolean isTracking;
+
+    public LotInfoDto(Long id, String name, String description, BigDecimal bidIncrement, BigDecimal startBid, BigDecimal lastBid, Integer totalBids, LocalDateTime startTime, LocalDateTime endTime, Status status, UserInfoDto seller, Boolean isTracking) {
+        this.id = id;
+        this.name = name;
+        this.description = description;
+        this.bidIncrement = bidIncrement;
+        this.startBid = startBid;
+        this.lastBid = lastBid;
+        this.totalBids = totalBids;
+        this.startTime = startTime;
+        this.endTime = endTime;
+        this.status = status;
+        this.seller = seller;
+        this.isTracking = isTracking;
+    }
 }

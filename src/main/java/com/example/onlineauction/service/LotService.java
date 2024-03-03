@@ -3,12 +3,18 @@ package com.example.onlineauction.service;
 import com.example.onlineauction.dto.lot.LotInfoDto;
 import com.example.onlineauction.dto.lot.LotListFiltersDto;
 import com.example.onlineauction.dto.lot.LotListOrderDto;
-import com.example.onlineauction.entity.*;
+import com.example.onlineauction.dto.lot.editLot.EditLotRequestData;
+import com.example.onlineauction.entity.CategoryEntity;
+import com.example.onlineauction.entity.LotEntity;
+import com.example.onlineauction.entity.Status;
+import com.example.onlineauction.entity.UserEntity;
+import com.example.onlineauction.exception.AccessDeniedException;
+import com.example.onlineauction.exception.ConflictException;
 import com.example.onlineauction.exception.ResourceNotFoundException;
-import com.example.onlineauction.repository.LotImageRepository;
 import com.example.onlineauction.repository.LotRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -16,42 +22,58 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class LotService {
 
     private static final Logger logger = LoggerFactory.getLogger(LotService.class);
-    private final ImageService imageService;
     private final LotRepository lotRepository;
-    private final LotImageRepository lotImageRepository;
+    private final LotImageService lotImageService;
 
     public Page<LotInfoDto> getListByFilters(LotListFiltersDto filters, LotListOrderDto order, Integer page, Integer limit) {
-       return lotRepository.findByFilters(filters, order, page, limit);
+        return lotRepository.findByFilters(filters, order, page, limit);
     }
 
     @Transactional
-    public Long create(LotEntity lotEntity, List<MultipartFile> images, UserEntity authUser) {
+    public Long create(LotEntity lot, List<MultipartFile> images, UserEntity authUser) {
         CategoryEntity categoryEntity = new CategoryEntity();
         categoryEntity.setName("TEST");
-        lotEntity.setSeller(authUser);
-        lotEntity.setStatus(Status.NEW);
-        lotEntity.setCategory(categoryEntity);
-        LotEntity savedLot = lotRepository.save(lotEntity);
-
-        List<LotImageEntity> lotImages = images.stream()
-                .map(image -> {
-                    LotImageEntity lotImageEntity = new LotImageEntity();
-                    lotImageEntity.setImage(imageService.upload(image));
-                    lotImageEntity.setLot(savedLot);
-                    return lotImageEntity;
-                })
-                .collect(Collectors.toList());
-        lotImageRepository.saveAll(lotImages);
+        lot.setSeller(authUser);
+        lot.setStatus(Status.REVIEW);
+        lot.setCategory(categoryEntity);
+        lotImageService.saveNew(images, lot);
+        LotEntity savedLot = lotRepository.save(lot);
 
         return savedLot.getId();
+    }
+
+    @Transactional
+    public void edit(Long id, EditLotRequestData editReqData, List<MultipartFile> images, UserEntity authUser) {
+        LotEntity lot = getById(id);
+        if (!authUser.getId().equals(lot.getSeller().getId())) {
+            throw new AccessDeniedException();
+        }
+        if (lot.getStatus() != Status.REVIEW && lot.getStatus() != Status.NEW) {
+            throw new ConflictException("Запрещено вносить правки в лот со статусом " + lot.getStatus().name());
+        }
+
+        CategoryEntity categoryEntity = new CategoryEntity();
+        categoryEntity.setName("TEST");
+        lot.setStatus(Status.REVIEW);
+        lot.setName(editReqData.getName());
+        lot.setDescription(editReqData.getDescription());
+        lot.setBidIncrement(editReqData.getBidIncrement());
+        lot.setStartBid(editReqData.getStartBid());
+        lot.setStartTime(editReqData.getStartTime());
+        lot.setEndTime(editReqData.getEndTime());
+        lot.setCategory(categoryEntity);
+        if (CollectionUtils.isNotEmpty(images)) {
+            lot.setImages(lotImageService.update(images, lot));
+        }
+        lotRepository.save(lot);
     }
 
     @Transactional
@@ -59,21 +81,28 @@ public class LotService {
         LotInfoDto lotInfoDto = lotRepository.findFullLotInfo(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Lot not found."));
 
-        if (LocalDateTime.now().isAfter(lotInfoDto.getStartTime())
-                && LocalDateTime.now().isBefore(lotInfoDto.getEndTime())
-                && !lotInfoDto.getStatus().equals(Status.ACTIVE)) {
-            lotRepository.markAsActive(lotInfoDto.getId());
-        } else if (LocalDateTime.now().isAfter(lotInfoDto.getEndTime())
-                && !lotInfoDto.getStatus().equals(Status.CLOSED)) {
-            lotRepository.markAsClosed(lotInfoDto.getId());
-        }
+        lotInfoDto.setStatus(updateStatusIfExpire(
+                lotInfoDto.getId(),
+                lotInfoDto.getStartTime(),
+                lotInfoDto.getEndTime(),
+                lotInfoDto.getStatus()
+        ));
 
         return lotInfoDto;
     }
 
     public LotEntity getById(Long id) {
-        return lotRepository.findById(id)
+        LotEntity lotEntity = lotRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Lot not found."));
+
+        lotEntity.setStatus(updateStatusIfExpire(
+                lotEntity.getId(),
+                lotEntity.getStartTime(),
+                lotEntity.getEndTime(),
+                lotEntity.getStatus()
+        ));;
+
+        return lotEntity;
     }
 
     public LotEntity update(LotEntity lotEntity) {
@@ -87,4 +116,19 @@ public class LotService {
         LotEntity lot = this.getById(lotId);
         return lot.getStatus().equals(Status.CLOSED);
     }
+
+    private Status updateStatusIfExpire(Long id, LocalDateTime startTime, LocalDateTime endTime, Status lotStatus) {
+        if (LocalDateTime.now().isAfter(startTime)
+                && LocalDateTime.now().isBefore(endTime)
+                && !lotStatus.equals(Status.ACTIVE)) {
+            lotRepository.markAsActive(id);
+            return Status.ACTIVE;
+        } else if (LocalDateTime.now().isAfter(endTime)
+                && !lotStatus.equals(Status.CLOSED)) {
+            lotRepository.markAsClosed(id);
+            return Status.CLOSED;
+        }
+        return lotStatus;
+    }
+
 }

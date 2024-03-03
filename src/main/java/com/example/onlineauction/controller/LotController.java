@@ -5,6 +5,7 @@ import com.example.onlineauction.dto.bid.NewBidRequestDto;
 import com.example.onlineauction.dto.lot.LotInfoDto;
 import com.example.onlineauction.dto.lot.createLot.CreateLotRequestDto;
 import com.example.onlineauction.dto.lot.createLot.CreateLotResponseDto;
+import com.example.onlineauction.dto.lot.editLot.EditLotRequestData;
 import com.example.onlineauction.dto.lot.getLotList.GetLotListRequestDto;
 import com.example.onlineauction.dto.lot.getLotList.GetLotListResponseDto;
 import com.example.onlineauction.entity.BidEntity;
@@ -63,6 +64,15 @@ public class LotController {
         LotEntity lot = modelMapper.map(createLotRequestDto, LotEntity.class);
         Long lotId = lotService.create(lot, images, principal.getUserEntity());
         return new CreateLotResponseDto().setId(lotId);
+    }
+
+    @PutMapping(path = "/{id}", consumes = "multipart/form-data")
+    @ResponseStatus(value = HttpStatus.NO_CONTENT)
+    public void editLot(@PathVariable Long id,
+                        @Validated @RequestPart("lot") EditLotRequestData editLotRequestData,
+                        @RequestPart(value = "image", required = false) List<MultipartFile> images,
+                        @AuthenticationPrincipal JwtUserDetails principal) {
+        lotService.edit(id, editLotRequestData, images, principal.getUserEntity());
     }
 
     @GetMapping("/{id}")
