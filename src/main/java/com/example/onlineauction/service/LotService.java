@@ -1,13 +1,10 @@
 package com.example.onlineauction.service;
 
-import com.example.onlineauction.dto.lot.LotInfoDto;
+import com.example.onlineauction.dto.lot.LotFullInfoDto;
 import com.example.onlineauction.dto.lot.LotListFiltersDto;
 import com.example.onlineauction.dto.lot.LotListOrderDto;
 import com.example.onlineauction.dto.lot.editLot.EditLotRequestData;
-import com.example.onlineauction.entity.CategoryEntity;
-import com.example.onlineauction.entity.LotEntity;
-import com.example.onlineauction.entity.Status;
-import com.example.onlineauction.entity.UserEntity;
+import com.example.onlineauction.entity.*;
 import com.example.onlineauction.exception.AccessDeniedException;
 import com.example.onlineauction.exception.ConflictException;
 import com.example.onlineauction.exception.ResourceNotFoundException;
@@ -22,8 +19,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
-import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -32,8 +29,10 @@ public class LotService {
     private static final Logger logger = LoggerFactory.getLogger(LotService.class);
     private final LotRepository lotRepository;
     private final LotImageService lotImageService;
+    private final BidService bidService;
+    private final TransactionService transactionService;
 
-    public Page<LotInfoDto> getListByFilters(LotListFiltersDto filters, LotListOrderDto order, Integer page, Integer limit) {
+    public Page<LotFullInfoDto> getListByFilters(LotListFiltersDto filters, LotListOrderDto order, Integer page, Integer limit) {
         return lotRepository.findByFilters(filters, order, page, limit);
     }
 
@@ -44,7 +43,7 @@ public class LotService {
         lot.setSeller(authUser);
         lot.setStatus(Status.REVIEW);
         lot.setCategory(categoryEntity);
-        lotImageService.saveNew(images, lot);
+        lot.setImages(lotImageService.uploadNew(images, lot));
         LotEntity savedLot = lotRepository.save(lot);
 
         return savedLot.getId();
@@ -60,8 +59,6 @@ public class LotService {
             throw new ConflictException("Запрещено вносить правки в лот со статусом " + lot.getStatus().name());
         }
 
-        CategoryEntity categoryEntity = new CategoryEntity();
-        categoryEntity.setName("TEST");
         lot.setStatus(Status.REVIEW);
         lot.setName(editReqData.getName());
         lot.setDescription(editReqData.getDescription());
@@ -69,7 +66,7 @@ public class LotService {
         lot.setStartBid(editReqData.getStartBid());
         lot.setStartTime(editReqData.getStartTime());
         lot.setEndTime(editReqData.getEndTime());
-        lot.setCategory(categoryEntity);
+        lot.setCategory(lot.getCategory());
         if (CollectionUtils.isNotEmpty(images)) {
             lot.setImages(lotImageService.update(images, lot));
         }
@@ -77,20 +74,20 @@ public class LotService {
     }
 
     @Transactional
-    public LotInfoDto getFullLotInfo(Long id) {
-        LotInfoDto lotInfoDto = lotRepository.findFullLotInfo(id)
+    public LotFullInfoDto getFullLotInfo(Long id) {
+        LotFullInfoDto lotFullInfoDto = lotRepository.findFullLotInfo(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Lot not found."));
 
-        lotInfoDto.setStatus(updateStatusIfExpire(
-                lotInfoDto.getId(),
-                lotInfoDto.getStartTime(),
-                lotInfoDto.getEndTime(),
-                lotInfoDto.getStatus()
+        lotFullInfoDto.setStatus(updateStatusIfExpire(
+                lotFullInfoDto.getId(),
+                lotFullInfoDto.getStartTime(),
+                lotFullInfoDto.getEndTime(),
+                lotFullInfoDto.getStatus()
         ));
-
-        return lotInfoDto;
+        return lotFullInfoDto;
     }
 
+    @Transactional
     public LotEntity getById(Long id) {
         LotEntity lotEntity = lotRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Lot not found."));
@@ -100,8 +97,7 @@ public class LotService {
                 lotEntity.getStartTime(),
                 lotEntity.getEndTime(),
                 lotEntity.getStatus()
-        ));;
-
+        ));
         return lotEntity;
     }
 
@@ -124,11 +120,32 @@ public class LotService {
             lotRepository.markAsActive(id);
             return Status.ACTIVE;
         } else if (LocalDateTime.now().isAfter(endTime)
-                && !lotStatus.equals(Status.CLOSED)) {
-            lotRepository.markAsClosed(id);
-            return Status.CLOSED;
+                && (!lotStatus.equals(Status.CLOSED) && !lotStatus.equals(Status.SOLD))) {
+            return closeLotAuction(id);
         }
         return lotStatus;
+    }
+
+    private Status closeLotAuction(Long id) {
+        Optional<BidEntity> lastBid = bidService.findLastByLotId(id);
+        LotEntity lot = lotRepository.findById(id).get();
+
+        Status finalStatus = Status.CLOSED;
+        if (lastBid.isPresent()) {
+            BidEntity bid = lastBid.get();
+            TransactionEntity transaction = new TransactionEntity();
+            transaction.setAmount(bid.getBid());
+            transaction.setBuyerEntity(bid.getUser());
+            transaction.setSellerEntity(lot.getSeller());
+            transaction.setDealTime(bid.getBidTime());
+            transaction.setLotEntity(lot);
+            transactionService.save(transaction);
+            finalStatus = Status.SOLD;
+        }
+        lot.setStatus(finalStatus);
+        lotRepository.save(lot);
+
+        return finalStatus;
     }
 
 }

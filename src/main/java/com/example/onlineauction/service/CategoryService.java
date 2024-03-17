@@ -16,43 +16,45 @@ public class CategoryService {
 
     private final CategoryRepository categoryRepository;
 
-//    public List<CategoryEntityDto> findAllRoot() {
-//        return categoryRepository.findAllRoot();
-//    }
-//
-//    public List<CategoryEntityDto> findAllByParentId(Long parentId) {
-//        return categoryRepository.findAllByParentId(parentId);
-//    }
-    public List<CategoryEntityDto> findAllBetweenDepths(int startDepth, int endDepth) {
-        List<CategoryEntityDto> allBetweenDepths = categoryRepository.findAllBetweenDepths(startDepth, endDepth);
+    public List<CategoryEntityDto> findTree(Long id) {
+        List<CategoryEntityDto> firstSubcategoriesFor = categoryRepository.findCategoryTree(id);
+        return transformForResponse(firstSubcategoriesFor);
+    }
 
+    public List<CategoryEntityDto> findRootCategories() {
+        List<CategoryEntityDto> rootCategories = categoryRepository.findAllRoot();
+        return transformForResponse(rootCategories);
+    }
+
+    public List<CategoryEntityDto> findAllBetweenDepths(int startDepth, int endDepth) {
+        List<CategoryEntityDto> categoryEntityDtos = categoryRepository.findAllBetweenDepths(startDepth, endDepth);
+        return transformForResponse(categoryEntityDtos);
+    }
+
+    public List<CategoryEntityDto> findAllByLotId(Long lotId) {
+        List<CategoryEntityDto> lotCategories = categoryRepository.findAllForLotByLotId(lotId);
+        return transformForResponse(lotCategories);
+    }
+
+    private List<CategoryEntityDto> transformForResponse(List<CategoryEntityDto> categoryEntityDtos) {
         // Сначала создадим Map для быстрого доступа к категориям по ID
         Map<Long, CategoryEntityDto> categoryMap = new HashMap<>();
-        for (CategoryEntityDto category : allBetweenDepths) {
+        for (CategoryEntityDto category : categoryEntityDtos) {
             categoryMap.put(category.getId(), category);
         }
 
         List<CategoryEntityDto> response = new ArrayList<>();
         // Теперь построим иерархию категорий
-        for (CategoryEntityDto category : allBetweenDepths) {
+        for (CategoryEntityDto category : categoryEntityDtos) {
             if (category.getParentId() != null) {
                 CategoryEntityDto parent = categoryMap.get(category.getParentId());
                 if (parent != null) {
-                    parent.getChildCategories().add(category);
+                    parent.getChild().add(category);
                     continue;
                 }
             }
             response.add(category);
         }
-
         return response;
     }
-
-    public List<CategoryEntityDto> findAllByLotId(Long lotId) {
-        return categoryRepository.findAllForLotByLotId(lotId);
-    }
-
-//    public List<CategoryEntityDto> addNew() {
-//        return categoryRepository.findAllByLotId(lotId);
-//    }
 }

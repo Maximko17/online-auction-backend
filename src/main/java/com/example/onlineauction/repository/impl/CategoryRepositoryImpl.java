@@ -4,20 +4,13 @@ import com.example.onlineauction.dto.category.CategoryEntityDto;
 import com.example.onlineauction.repository.CategoryCustomRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.Query;
 import jakarta.persistence.Tuple;
-import liquibase.util.NumberUtil;
 import lombok.AllArgsConstructor;
-import org.hibernate.query.NativeQuery;
-import org.hibernate.transform.Transformers;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-import org.springframework.util.NumberUtils;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Repository
 @AllArgsConstructor
@@ -25,6 +18,59 @@ public class CategoryRepositoryImpl implements CategoryCustomRepository {
 
     @PersistenceContext
     private final EntityManager entityManager;
+
+    @Override
+    public List<CategoryEntityDto> findCategoryTree(Long categoryId) {
+        String nativeQuery = """
+                WITH RECURSIVE
+                    CategoryHierarchy AS (
+                        SELECT id, name, parent_id
+                        FROM auction.categories
+                        WHERE id = :categoryId -- Здесь :categoryId - это идентификатор категории, для которой нужно найти родительские категории и подкатегории первого уровня
+                        UNION ALL
+                        SELECT c.id, c.name, c.parent_id
+                        FROM auction.categories c
+                                 INNER JOIN CategoryHierarchy ch ON c.id = ch.parent_id
+                    ),
+                    RootCategory AS (
+                        SELECT id, name, parent_id
+                        FROM CategoryHierarchy
+                        WHERE parent_id IS NULL -- Выбираем корневую категорию
+                    ),
+                    ParentCategories AS (
+                        SELECT id, name, parent_id
+                        FROM CategoryHierarchy
+                        WHERE parent_id IS NOT NULL -- Выбираем все родительские категории
+                    ),
+                    SubCategories AS (
+                        SELECT id, name, parent_id
+                        FROM auction.categories
+                        WHERE parent_id = :categoryId -- Выбираем подкатегории первого уровня для переданного ID
+                    )
+                SELECT id, name, parent_id as parentId
+                    FROM RootCategory
+                UNION ALL
+                SELECT id, name, parent_id as parentId
+                FROM ParentCategories
+                UNION ALL
+                SELECT id, name, parent_id as parentId
+                FROM SubCategories;
+                """;
+
+        Query query = entityManager.createNativeQuery(nativeQuery, Tuple.class);
+        query.setParameter("categoryId", categoryId);
+
+        List<Tuple> result = query.getResultList();
+
+        List<CategoryEntityDto> collect = result.stream()
+                .map(obj -> new CategoryEntityDto(
+                        (Long) obj.get("id"),
+                        (String) obj.get("name"),
+                        (Long) obj.get("parentId")))
+                .collect(Collectors.toList());
+
+        return collect;
+    }
 
     @Override
     public List<CategoryEntityDto> findAllForLotByLotId(Long lotId) {
@@ -43,7 +89,7 @@ public class CategoryRepositoryImpl implements CategoryCustomRepository {
                                 INNER JOIN tree t ON t.parent_id = c.id   
                    )   
                    SELECT t.id as id,   
-                          t.name as name ,   
+                          t.name as name,   
                           t.parent_id as parentId   
                    FROM tree t   
                    ORDER BY t.id """, Tuple.class)
@@ -56,9 +102,7 @@ public class CategoryRepositoryImpl implements CategoryCustomRepository {
                         new CategoryEntityDto(
                                 (Long) obj.get("id"),
                                 (String) obj.get("name"),
-                                (Long) obj.get("parentId"),
-                                0
-                        )
+                                (Long) obj.get("parentId"))
                 )
                 .collect(Collectors.toList());
 
@@ -66,7 +110,7 @@ public class CategoryRepositoryImpl implements CategoryCustomRepository {
     }
 
     @Override
-    public List<CategoryEntityDto> findAllBetweenDepths(@Param("startDepth") int startDepth, @Param("endDepth") int endDepth) {
+    public List<CategoryEntityDto> findAllBetweenDepths(int startDepth, int endDepth) {
         List<Tuple> resultTuples = entityManager.createNativeQuery("""
                     WITH RECURSIVE tree (id, name, parent_id, depth) AS (  
                     SELECT c.id,  
@@ -96,16 +140,13 @@ public class CategoryRepositoryImpl implements CategoryCustomRepository {
                 .getResultList();
 
         List<CategoryEntityDto> collect = resultTuples.stream()
-                .map(obj ->
-                        new CategoryEntityDto(
-                                (Long) obj.get("id"),
-                                (String) obj.get("name"),
-                                (Long) obj.get("parentId"),
-                                (Integer) obj.get("depth")
-                        )
-                )
+                .map(obj -> new CategoryEntityDto(
+                        (Long) obj.get("id"),
+                        (String) obj.get("name"),
+                        (Long) obj.get("parentId")))
                 .collect(Collectors.toList());
 
         return collect;
     }
+
 }

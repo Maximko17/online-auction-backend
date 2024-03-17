@@ -2,7 +2,7 @@ package com.example.onlineauction.controller;
 
 import com.example.onlineauction.dto.bid.GetLotBidsDto;
 import com.example.onlineauction.dto.bid.NewBidRequestDto;
-import com.example.onlineauction.dto.lot.LotInfoDto;
+import com.example.onlineauction.dto.lot.LotFullInfoDto;
 import com.example.onlineauction.dto.lot.createLot.CreateLotRequestDto;
 import com.example.onlineauction.dto.lot.createLot.CreateLotResponseDto;
 import com.example.onlineauction.dto.lot.editLot.EditLotRequestData;
@@ -47,7 +47,7 @@ public class LotController {
 
     @PostMapping
     public GetLotListResponseDto getLotList(@RequestBody GetLotListRequestDto requestDto) {
-        Page<LotInfoDto> lotByFilters = lotService.getListByFilters(
+        Page<LotFullInfoDto> lotByFilters = lotService.getListByFilters(
                 requestDto.getFilters(),
                 requestDto.getOrder(),
                 requestDto.getPage(),
@@ -76,10 +76,9 @@ public class LotController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<LotInfoDto> getLot(@PathVariable Long id) {
-        LotInfoDto fullLotInfo = lotService.getFullLotInfo(id);
-
-        return new ResponseEntity<>(fullLotInfo, HttpStatus.OK);
+    public LotFullInfoDto getLot(@PathVariable Long id) {
+        LotFullInfoDto fullLotInfo = lotService.getFullLotInfo(id);
+        return fullLotInfo;
     }
 
     @PostMapping(path = "/{id}/bids/new")
@@ -92,12 +91,12 @@ public class LotController {
     }
 
     @GetMapping("/{id}/bids")
-    public ResponseEntity<List<GetLotBidsDto>> bids(@PathVariable("id") Long lotId) {
+    public List<GetLotBidsDto> bids(@PathVariable("id") Long lotId) {
         List<BidEntity> bids = bidService.findAllByLotId(lotId);
         List<GetLotBidsDto> lotBidsDtos = modelMapper
                 .map(bids, new TypeToken<List<GetLotBidsDto>>() {
                 }.getType());
-        return new ResponseEntity<>(lotBidsDtos, HttpStatus.OK);
+        return lotBidsDtos;
     }
 
     @GetMapping("/{id}/bids-stream")

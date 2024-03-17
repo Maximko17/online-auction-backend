@@ -1,6 +1,6 @@
 package com.example.onlineauction.controller;
 
-import com.example.onlineauction.dto.lot.LotInfoDto;
+import com.example.onlineauction.dto.lot.LotFullInfoDto;
 import com.example.onlineauction.dto.lot.getLotList.GetLotListRequestDto;
 import com.example.onlineauction.dto.lot.getLotList.GetLotListResponseDto;
 import com.example.onlineauction.security.JwtUserDetails;
@@ -25,7 +25,7 @@ public class UserController {
     public GetLotListResponseDto getTrackingLots(@Validated @RequestBody GetLotListRequestDto requestDto,
                                                  @AuthenticationPrincipal JwtUserDetails principal) {
         requestDto.getFilters().setTrackingUserId(principal.getUserEntity().getId());
-        Page<LotInfoDto> listByFilters = lotService
+        Page<LotFullInfoDto> listByFilters = lotService
                 .getListByFilters(
                         requestDto.getFilters(),
                         requestDto.getOrder(),
@@ -39,7 +39,7 @@ public class UserController {
     public GetLotListResponseDto getBidsLots(@Validated @RequestBody GetLotListRequestDto requestDto,
                                              @AuthenticationPrincipal JwtUserDetails principal) {
         requestDto.getFilters().setBidUserId(principal.getUserEntity().getId());
-        Page<LotInfoDto> listByFilters = lotService
+        Page<LotFullInfoDto> listByFilters = lotService
                 .getListByFilters(
                         requestDto.getFilters(),
                         requestDto.getOrder(),

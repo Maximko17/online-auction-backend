@@ -4,7 +4,6 @@ import com.example.onlineauction.dto.auth.*;
 import com.example.onlineauction.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 

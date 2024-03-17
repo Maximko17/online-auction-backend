@@ -10,7 +10,7 @@ import java.util.List;
 
 @Getter
 @Setter
-public class LotInfoDto {
+public class LotFullInfoDto {
     private final Long id;
     private final String name;
     private final String description;
@@ -25,7 +25,7 @@ public class LotInfoDto {
     private final UserInfoDto seller;
     private final Boolean isTracking;
 
-    public LotInfoDto(Long id, String name, String description, BigDecimal bidIncrement, BigDecimal startBid, BigDecimal lastBid, Integer totalBids, LocalDateTime startTime, LocalDateTime endTime, Status status, UserInfoDto seller, Boolean isTracking) {
+    public LotFullInfoDto(Long id, String name, String description, BigDecimal bidIncrement, BigDecimal startBid, BigDecimal lastBid, Integer totalBids, LocalDateTime startTime, LocalDateTime endTime, Status status, UserInfoDto seller, Boolean isTracking) {
         this.id = id;
         this.name = name;
         this.description = description;

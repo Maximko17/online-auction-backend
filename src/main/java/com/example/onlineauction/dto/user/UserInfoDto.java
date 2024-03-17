@@ -6,6 +6,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.math.BigDecimal;
+
 @Getter
 @Setter
 @AllArgsConstructor
@@ -15,6 +17,6 @@ public class UserInfoDto {
     private String username;
     private String email;
     private Role role;
-    private Short rating;
+    private BigDecimal rating;
     private String image;
 }

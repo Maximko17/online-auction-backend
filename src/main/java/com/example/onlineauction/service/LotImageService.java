@@ -3,6 +3,7 @@ package com.example.onlineauction.service;
 import com.example.onlineauction.entity.LotEntity;
 import com.example.onlineauction.entity.LotImageEntity;
 import com.example.onlineauction.repository.LotImageRepository;
+import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -17,8 +18,9 @@ public class LotImageService {
     private final S3Service s3Service;
     private final LotImageRepository lotImageRepository;
 
-    public List<LotImageEntity> saveNew(List<MultipartFile> images, LotEntity lot) {
-        List<LotImageEntity> lotImages = images.stream()
+    @Transactional
+    public List<LotImageEntity> uploadNew(List<MultipartFile> images, LotEntity lot) {
+        return images.stream()
                 .map(image -> {
                     LotImageEntity lotImageEntity = new LotImageEntity();
                     lotImageEntity.setImage(s3Service.upload(image));
@@ -26,9 +28,9 @@ public class LotImageService {
                     return lotImageEntity;
                 })
                 .collect(Collectors.toList());
-        return lotImageRepository.saveAll(lotImages);
     }
 
+    @Transactional
     public List<LotImageEntity> update(List<MultipartFile> images, LotEntity lot) {
         List<String> prevLotImagesNames = lot.getImages().stream()
                 .map(LotImageEntity::getImage)
@@ -36,6 +38,6 @@ public class LotImageService {
         lotImageRepository.deleteAllByLot(lot);
         s3Service.delete(prevLotImagesNames);
 
-        return saveNew(images, lot);
+        return uploadNew(images, lot);
     }
 }

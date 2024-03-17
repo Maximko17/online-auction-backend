@@ -24,4 +24,6 @@ public interface BidsRepository extends JpaRepository<BidEntity, Long> {
             "group by b.lot.id")
     Optional<BidsCountAndMaxBidDto> findCountAndMaxBidByLotId(Long lotId);
 
+    @Query(nativeQuery = true, value = "select * from auction.bids b order by b.id limit 1")
+    Optional<BidEntity> findLastByLotId(Long lotId);
 }

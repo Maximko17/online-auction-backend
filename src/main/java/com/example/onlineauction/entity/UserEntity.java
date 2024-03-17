@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import org.hibernate.annotations.ColumnTransformer;
 
+import java.math.BigDecimal;
 import java.util.Objects;
 import java.util.Set;
 
@@ -15,7 +16,7 @@ public class UserEntity {
     private String password;
     private String email;
     private Role role;
-    private Short rating;
+    private BigDecimal rating;
     private String image;
 
     @Id
@@ -73,11 +74,11 @@ public class UserEntity {
 
     @Basic
     @Column(name = "rating")
-    public Short getRating() {
+    public BigDecimal getRating() {
         return rating;
     }
 
-    public void setRating(Short rating) {
+    public void setRating(BigDecimal rating) {
         this.rating = rating;
     }
 

@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor(onConstructor_ = {@Lazy})
@@ -41,7 +42,7 @@ public class BidService {
         bidsRepository.save(bidEntity);
 
         lotEntity.setLastBid(bid);
-        lotEntity.setTotalBids(lotEntity.getTotalBids() == null ? 0 : lotEntity.getTotalBids() + 1);
+        lotEntity.setTotalBids(lotEntity.getTotalBids() == null ? 1 : lotEntity.getTotalBids() + 1);
         lotService.update(lotEntity);
 
         publisher.publishEvent(bidEntity);
@@ -50,6 +51,10 @@ public class BidService {
 
     public List<BidEntity> findAllByLotId(Long lotId) {
         return bidsRepository.findAllByLotId(lotId);
+    }
+
+    public Optional<BidEntity> findLastByLotId(Long lotId) {
+        return bidsRepository.findLastByLotId(lotId);
     }
 
     public List<BidEntity> getUserBidLots(Long userId) {

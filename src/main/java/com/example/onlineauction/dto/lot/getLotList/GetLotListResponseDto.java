@@ -1,7 +1,6 @@
 package com.example.onlineauction.dto.lot.getLotList;
 
-import com.example.onlineauction.dto.lot.LotInfoDto;
-import com.example.onlineauction.entity.LotEntity;
+import com.example.onlineauction.dto.lot.LotFullInfoDto;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -12,6 +11,6 @@ import java.util.List;
 @Setter
 @AllArgsConstructor
 public class GetLotListResponseDto {
-    List<LotInfoDto> content;
+    List<LotFullInfoDto> content;
     int totalPages;
 }

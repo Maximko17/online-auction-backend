@@ -4,5 +4,6 @@ public enum Status {
     REVIEW,
     NEW,
     ACTIVE,
-    CLOSED
+    CLOSED,
+    SOLD
 }

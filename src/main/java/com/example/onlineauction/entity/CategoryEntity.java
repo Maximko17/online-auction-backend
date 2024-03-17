@@ -1,9 +1,7 @@
 package com.example.onlineauction.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
-import java.util.List;
 import java.util.Objects;
 
 @Entity
@@ -11,8 +9,7 @@ import java.util.Objects;
 public class CategoryEntity {
     private Long id;
     private String name;
-    private CategoryEntity parentCategory;
-//    private List<CategoryEntity> categoryEntities;
+    private CategoryEntity parent;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -50,21 +47,12 @@ public class CategoryEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_id", referencedColumnName = "id")
-    public CategoryEntity getParentCategory() {
-        return parentCategory;
+    public CategoryEntity getParent() {
+        return parent;
     }
 
-    public void setParentCategory(CategoryEntity categoriesByParentId) {
-        this.parentCategory = categoriesByParentId;
+    public void setParent(CategoryEntity parent) {
+        this.parent = parent;
     }
-
-//    @OneToMany(mappedBy = "parentCategory")
-//    public List<CategoryEntity> getCategoryEntities() {
-//        return categoryEntities;
-//    }
-//
-//    public void setCategoryEntities(List<CategoryEntity> categoriesById) {
-//        this.categoryEntities = categoriesById;
-//    }
 
 }

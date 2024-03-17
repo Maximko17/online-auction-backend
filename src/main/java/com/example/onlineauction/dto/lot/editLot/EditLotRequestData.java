@@ -10,6 +10,8 @@ import java.time.LocalDateTime;
 
 @Data
 public class EditLotRequestData {
+//    @NotEmpty
+    private Long categoryId;
     @NotEmpty
     private String name;
     @NotEmpty

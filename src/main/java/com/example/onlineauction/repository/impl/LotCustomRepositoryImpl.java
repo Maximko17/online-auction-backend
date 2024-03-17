@@ -1,7 +1,7 @@
 package com.example.onlineauction.repository.impl;
 
 import com.example.onlineauction.dto.lot.LotImageDto;
-import com.example.onlineauction.dto.lot.LotInfoDto;
+import com.example.onlineauction.dto.lot.LotFullInfoDto;
 import com.example.onlineauction.dto.lot.LotListFiltersDto;
 import com.example.onlineauction.dto.lot.LotListOrderDto;
 import com.example.onlineauction.dto.user.UserInfoDto;
@@ -38,7 +38,7 @@ public class LotCustomRepositoryImpl implements LotCustomRepository {
     private final EntityManager entityManager;
     private final AuthenticationFacade authenticationFacade;
 
-    public Page<LotInfoDto> findByFilters(LotListFiltersDto filters, LotListOrderDto order, Integer page, Integer limit) {
+    public Page<LotFullInfoDto> findByFilters(LotListFiltersDto filters, LotListOrderDto order, Integer page, Integer limit) {
         QLotEntity lot = QLotEntity.lotEntity;
         QUserEntity seller = QUserEntity.userEntity;
         QTrackingEntity trackingEntity = QTrackingEntity.trackingEntity;
@@ -73,7 +73,7 @@ public class LotCustomRepositoryImpl implements LotCustomRepository {
                 .restrict(new QueryModifiers((long) limit, (long) (page - 1) * limit))
                 .fetch();
 
-        List<LotInfoDto> lotInfoDtos = new JPAQuery<>(entityManager)
+        List<LotFullInfoDto> lotFullInfoDtos = new JPAQuery<>(entityManager)
                 .select(getSelectProjection(lot, trackingEntity, seller))
                 .from(lot)
                 .innerJoin(lot.seller, seller)
@@ -81,15 +81,39 @@ public class LotCustomRepositoryImpl implements LotCustomRepository {
                 .orderBy(orderClause)
                 .fetch();
 
-        List<Long> lotIds = lotInfoDtos.stream().map(LotInfoDto::getId).collect(Collectors.toList());
+        List<Long> lotIds = lotFullInfoDtos.stream().map(LotFullInfoDto::getId).collect(Collectors.toList());
         Map<Long, List<String>> imagesByLotId = findImagesForLots(lotIds);
 
-        for (LotInfoDto lotInfoDto : lotInfoDtos) {
-            List<String> photoUrls = imagesByLotId.getOrDefault(lotInfoDto.getId(), Collections.emptyList());
-            lotInfoDto.setImages(photoUrls);
+        for (LotFullInfoDto lotFullInfoDto : lotFullInfoDtos) {
+            List<String> photoUrls = imagesByLotId.getOrDefault(lotFullInfoDto.getId(), Collections.emptyList());
+            lotFullInfoDto.setImages(photoUrls);
         }
 
-        return new PageImpl<>(lotInfoDtos, PageRequest.of(page - 1, limit), totalCount == null ? 0 : totalCount);
+        return new PageImpl<>(lotFullInfoDtos, PageRequest.of(page - 1, limit), totalCount == null ? 0 : totalCount);
+    }
+
+    @Override
+    public Optional<LotFullInfoDto> findFullLotInfo(Long lotId) {
+        QLotEntity lot = QLotEntity.lotEntity;
+        QUserEntity seller = QUserEntity.userEntity;
+        QTrackingEntity tracking = QTrackingEntity.trackingEntity;
+
+        Optional<LotFullInfoDto> lotInfoDto = Optional.ofNullable(
+                new JPAQuery<>(entityManager)
+                        .select(getSelectProjection(lot, tracking, seller))
+                        .from(lot)
+                        .innerJoin(lot.seller, seller)
+                        .leftJoin(lot.tracking, tracking)
+                        .where(lot.id.eq(lotId))
+                        .fetchOne()
+        );
+
+        lotInfoDto.ifPresent(lotInfo -> {
+            Map<Long, List<String>> imagesForLots = findImagesForLots(List.of(lotInfo.getId()));
+            lotInfo.setImages(imagesForLots.get(lotInfo.getId()));
+        });
+
+        return lotInfoDto;
     }
 
     private Map<Long, List<String>> findImagesForLots(List<Long> lotIds) {
@@ -110,9 +134,9 @@ public class LotCustomRepositoryImpl implements LotCustomRepository {
                         Collectors.mapping(LotImageDto::getImage, Collectors.toList())));
     }
 
-    private ConstructorExpression<LotInfoDto> getSelectProjection(QLotEntity lot,
-                                                                  QTrackingEntity tracking,
-                                                                  QUserEntity seller) {
+    private ConstructorExpression<LotFullInfoDto> getSelectProjection(QLotEntity lot,
+                                                                      QTrackingEntity tracking,
+                                                                      QUserEntity seller) {
         Authentication authentication = authenticationFacade.getAuthentication();
 
         BooleanExpression isTrackingQuery = authentication != null
@@ -124,7 +148,7 @@ public class LotCustomRepositoryImpl implements LotCustomRepository {
                 : Expressions.asBoolean(false);
 
         return Projections.constructor(
-                LotInfoDto.class,
+                LotFullInfoDto.class,
                 lot.id,
                 lot.name,
                 lot.description,
@@ -146,30 +170,6 @@ public class LotCustomRepositoryImpl implements LotCustomRepository {
                 ),
                 isTrackingQuery
         );
-    }
-
-    @Override
-    public Optional<LotInfoDto> findFullLotInfo(Long lotId) {
-        QLotEntity lot = QLotEntity.lotEntity;
-        QUserEntity seller = QUserEntity.userEntity;
-        QTrackingEntity tracking = QTrackingEntity.trackingEntity;
-
-        Optional<LotInfoDto> lotInfoDto = Optional.ofNullable(
-                new JPAQuery<>(entityManager)
-                        .select(getSelectProjection(lot, tracking, seller))
-                        .from(lot)
-                        .innerJoin(lot.seller, seller)
-                        .leftJoin(lot.tracking, tracking)
-                        .where(lot.id.eq(lotId))
-                        .fetchOne()
-        );
-
-        lotInfoDto.ifPresent(lotInfo -> {
-            Map<Long, List<String>> imagesForLots = findImagesForLots(List.of(lotInfo.getId()));
-            lotInfo.setImages(imagesForLots.get(lotInfo.getId()));
-        });
-
-        return lotInfoDto;
     }
 }
 
